@@ -66,8 +66,7 @@ class Grid:
           print(self.grid[i][j], end=' ')
       print()
 
-
-
+# Bot with Simple Mini Max Algorithm
 class AIPlayer:
   def __init__(self, symbol, opponent):
     self.symbol = symbol
@@ -80,6 +79,8 @@ class AIPlayer:
       return 0
 
     scores = []
+    minScore =  100
+    maxScore = -100
     for i in range(3):
       for j in range(3):
         if grid.grid[i][j] == 0:
@@ -95,7 +96,6 @@ class AIPlayer:
       return max(scores)
     else:
       return min(scores)
-
 
   def MiniMax(self, grid):
     scores = {}
@@ -115,11 +115,71 @@ class AIPlayer:
     cell = self.MiniMax(grid)
     return int(cell)
 
+
+# Bot with Simple Mini Max Algorithm with Alpha Beta Pruning
+class AIPlayerFast:
+  def __init__(self, symbol, opponent):
+    self.symbol = symbol
+    self.opponent = opponent
+  
+  def Score(self, grid, maximize, alpha=[-1000], beta=[1000]):
+    if grid.CheckWin():
+      return -1 if maximize else 1
+    if grid.CheckTie():
+      return 0
+
+    scores = []
+    minScore =  100
+    maxScore = -100
+    for i in range(3):
+      for j in range(3):
+        if grid.grid[i][j] == 0:
+          node = deepcopy(grid);
+          if maximize:
+            node.SetCell(i,j, self)
+          else:
+            node.SetCell(i,j, self.opponent)
+          score = self.Score(node, not maximize)
+          scores.append(score)
+
+          if maximize:
+            alpha[0] = max(alpha[0], score)
+          else:
+            beta[0] = min(beta[0], score)
+          
+          if beta[0] < alpha[0]:
+            break
+
+    if maximize:
+      return max(scores)
+    else:
+      return min(scores)
+
+  def MiniMax(self, grid):
+    scores = {}
+    for i in range(3):
+      for j in range(3):
+        if not grid.grid[i][j] == 0:
+          continue
+        node = deepcopy(grid);
+        node.SetCell(i,j, self)
+        score = self.Score(node, False)
+        cell = i*3 + j + 1;
+        scores[cell] = score
+    return max(scores, key=scores.get)
+
+  def GetCell(self, grid):
+    print('Player ({})'.format(self.symbol))
+    cell = self.MiniMax(grid)
+    return int(cell)
+
+
 class Game:
   def __init__(self):
     p1 = Player('X')
     #p2 = Player('O')
-    p2 = AIPlayer('O', p1)
+    #p2 = AIPlayer('O', p1)
+    p2 = AIPlayerFast('O', p1)
     self.Players=[p1, p2]
     self.ResetGame();
 

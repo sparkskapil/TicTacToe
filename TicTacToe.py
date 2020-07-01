@@ -10,7 +10,6 @@ def ClearConsole():
     else: 
         _ = system('clear') 
 
-
 class Player:
   def __init__(self, symbol):
     self.symbol = symbol
@@ -19,7 +18,6 @@ class Player:
     print('Player ({})'.format(self.symbol))
     cell = input('Enter Cell: ')
     return int(cell)
-  
   
 class Grid:
   def __init__(self):
@@ -115,7 +113,6 @@ class AIPlayer:
     cell = self.MiniMax(grid)
     return int(cell)
 
-
 # Bot with Simple Mini Max Algorithm with Alpha Beta Pruning
 class AIPlayerFast:
   def __init__(self, symbol, opponent):
@@ -129,8 +126,6 @@ class AIPlayerFast:
       return 0
 
     scores = []
-    minScore =  100
-    maxScore = -100
     for i in range(3):
       for j in range(3):
         if grid.grid[i][j] == 0:
@@ -172,7 +167,6 @@ class AIPlayerFast:
     print('Player ({})'.format(self.symbol))
     cell = self.MiniMax(grid)
     return int(cell)
-
 
 class Game:
   def __init__(self):
@@ -232,7 +226,6 @@ class Game:
     else:
       print('Player ({}) Wins'.format(self.Player.symbol))
       
-
 game = Game()
 game.StartGame()
 

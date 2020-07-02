@@ -192,31 +192,45 @@ class Game:
     ClearConsole()
     self.Grid.PrintGrid()
 
-  def StartGame(self):
+  def IsFinished(self):
+    return self.Finished
+
+  def IsTied(self):
+    return self.Winner == None and self.Finished
+
+  def GetWinner(self):
+    return self.Player.symbol
+
+  def TakeTurn(self, cell):
+    if not 0 < cell < 10:
+      return False
+
+    row = (cell-1) // 3;
+    col = (cell-1) % 3;
+
+    isSet = self.Grid.SetCell(row, col, self.Player);
+    if isSet == False:
+      return False
+    
+    isWon = self.Grid.CheckWin();
+    if isWon:
+      self.Winner = self.Player
+      self.Finished = True
+      return False
+
+    isTied = self.Grid.CheckTie()
+    if isTied:
+      self.Finished = True
+      return False
+    
+    self.SwitchPlayer()
+
+  def StartConsoleGame(self):
     while self.Finished == False:
       self.DrawGrid()
+      
       cell = self.Player.GetCell(self.Grid)
-      if not 0 < cell < 10:
-        continue
-      row = (cell-1) // 3;
-      col = (cell-1) % 3;
-
-      isSet = self.Grid.SetCell(row, col, self.Player);
-      if isSet == False:
-        continue
-      
-      isWon = self.Grid.CheckWin();
-      if isWon:
-        self.Winner = self.Player
-        self.Finished = True
-        continue
-
-      isTied = self.Grid.CheckTie()
-      if isTied:
-        self.Finished = True
-        continue
-      
-      self.SwitchPlayer()
+      self.TakeTurn(cell)
     
     # Declare Game Result
     self.DrawGrid()
@@ -227,5 +241,5 @@ class Game:
       print('Player ({}) Wins'.format(self.Player.symbol))
       
 game = Game()
-game.StartGame()
+game.StartConsoleGame()
 

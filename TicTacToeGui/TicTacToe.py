@@ -171,7 +171,6 @@ class AIPlayerFast:
         return max(scores, key=scores.get)
 
     def GetCell(self, grid):
-        print('Player ({})'.format(self.symbol))
         cell = self.MiniMax(grid)
         return int(cell)
 

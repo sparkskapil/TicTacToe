@@ -1,6 +1,7 @@
 import pygame
 from TicTacToe import *
 
+
 class Layer:
     def Init(self, Width, Height, Surface, Application):
         self.Width = Width
@@ -75,30 +76,30 @@ class Grid(Layer):
         self.boxes.append([0, 2*H//3, W//3, H])
         self.boxes.append([W//3, 2*H//3, 2*W//3, H])
         self.boxes.append([2*W//3, 2*H//3, W, H])
-    
+
     def DrawXO(self):
         P = self.padding
         grid = self.Game.GetGrid()
         for i in range(3):
             for j in range(3):
                 cell = grid[i][j]
-                index = i*3+j;
+                index = i*3+j
                 if index in self.Drawn:
                     continue
-                #Get Corresponding Rect for Cell
-                x1,y1,x2,y2 = self.boxes[index]
+                # Get Corresponding Rect for Cell
+                x1, y1, x2, y2 = self.boxes[index]
                 w = x2-x1
                 h = y2-y1
                 # print(cell)
                 if cell == 'X':
-                    XSprite = Sprite('T3X_BLACK.png',x1+P,y1+P,w,h)
+                    XSprite = Sprite('T3X_BLACK.png', x1+P, y1+P, w, h)
                     self.App.AttachLayer(XSprite)
                     self.Drawn.append(index)
                 elif cell == 'O':
-                    OSprite = Sprite('T3O_BLACK.png',x1+P,y1+P,w,h)
+                    OSprite = Sprite('T3O_BLACK.png', x1+P, y1+P, w, h)
                     self.App.AttachLayer(OSprite)
                     self.Drawn.append(index)
-        
+
     def Draw(self):
         P = self.padding
         W = self.Width - 2 * P
@@ -132,11 +133,9 @@ class Grid(Layer):
             y2 = rect[3] + P
             X, Y = pygame.mouse.get_pos()
             if x1 < X < x2 and y1 < Y < y2:
-                #print(index + 1)
                 w = x2-x1
                 h = y2-y1
                 self.Game.TakeTurn(index+1)
-
 
 
 class Application:

@@ -1,5 +1,6 @@
 from os import system, name
 from copy import deepcopy
+from enum import Enum
 
 
 def ClearConsole():
@@ -10,6 +11,21 @@ def ClearConsole():
     # for mac and linux(here, os.name is 'posix')
     else:
         _ = system('clear')
+
+
+class GameModes(Enum):
+    # Player Vs Player
+    PvP = 1
+    # Player Vs Computer
+    Computer = 2
+
+
+class PlayersFactory:
+    def GetPlayers(GameMode):
+        if GameMode == GameModes.PvP:
+            return [Player('X'),  Player('O')]
+        if GameMode == GameModes.Computer:
+            return [Player('X'), AIPlayerFast('O', 'X')]
 
 
 class Player:
@@ -26,11 +42,11 @@ class Grid:
     def __init__(self):
         self.grid = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
 
-    def SetCell(self, row, col, player):
-        if player == None:
-            raise ValueError('Player is required to set value in the cell')
+    def SetCell(self, row, col, symbol):
+        if symbol == None:
+            raise ValueError('Symbol is required to set value in the cell')
         if self.grid[row][col] == 0:
-            self.grid[row][col] = player.symbol
+            self.grid[row][col] = symbol
             return True
         return False
 
@@ -67,9 +83,8 @@ class Grid:
                     print(self.grid[i][j], end=' ')
             print()
 
+
 # Bot with Simple Mini Max Algorithm
-
-
 class AIPlayer:
     def __init__(self, symbol, opponent):
         self.symbol = symbol
@@ -89,7 +104,7 @@ class AIPlayer:
                 if grid.grid[i][j] == 0:
                     node = deepcopy(grid)
                     if maximize:
-                        node.SetCell(i, j, self)
+                        node.SetCell(i, j, self.symbol)
                     else:
                         node.SetCell(i, j, self.opponent)
                     score = self.Score(node, not maximize)
@@ -107,20 +122,18 @@ class AIPlayer:
                 if not grid.grid[i][j] == 0:
                     continue
                 node = deepcopy(grid)
-                node.SetCell(i, j, self)
+                node.SetCell(i, j, self.symbol)
                 score = self.Score(node, False)
                 cell = i*3 + j + 1
                 scores[cell] = score
         return max(scores, key=scores.get)
 
     def GetCell(self, grid):
-        #print('Player ({})'.format(self.symbol))
         cell = self.MiniMax(grid)
         return int(cell)
 
+
 # Bot with Simple Mini Max Algorithm with Alpha Beta Pruning
-
-
 class AIPlayerFast:
     def __init__(self, symbol, opponent):
         self.symbol = symbol
@@ -138,7 +151,7 @@ class AIPlayerFast:
                 if grid.grid[i][j] == 0:
                     node = deepcopy(grid)
                     if maximize:
-                        node.SetCell(i, j, self)
+                        node.SetCell(i, j, self.symbol)
                     else:
                         node.SetCell(i, j, self.opponent)
                     score = self.Score(node, not maximize)
@@ -164,7 +177,7 @@ class AIPlayerFast:
                 if not grid.grid[i][j] == 0:
                     continue
                 node = deepcopy(grid)
-                node.SetCell(i, j, self)
+                node.SetCell(i, j, self.symbol)
                 score = self.Score(node, False)
                 cell = i*3 + j + 1
                 scores[cell] = score
@@ -177,11 +190,7 @@ class AIPlayerFast:
 
 class Game:
     def __init__(self):
-        p1 = Player('X')
-        #p2 = Player('O')
-        #p2 = AIPlayer('O', p1)
-        p2 = AIPlayerFast('O', p1)
-        self.Players = [p1, p2]
+        self.Players = PlayersFactory.GetPlayers(GameModes.Computer)
         self.ResetGame()
 
     def ResetGame(self):
@@ -218,7 +227,7 @@ class Game:
         row = (cell-1) // 3
         col = (cell-1) % 3
 
-        isSet = self.Grid.SetCell(row, col, self.Player)
+        isSet = self.Grid.SetCell(row, col, self.Player.symbol)
         if isSet == False:
             return False
 

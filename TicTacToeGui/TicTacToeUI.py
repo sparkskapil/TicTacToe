@@ -54,7 +54,6 @@ class Grid(Layer):
         self.color = color
         self.thickness = thickness
         self.Game = Game()
-        self.Drawn = []
 
     def Setup(self):
         self.turn = False
@@ -84,8 +83,7 @@ class Grid(Layer):
             for j in range(3):
                 cell = grid[i][j]
                 index = i*3+j
-                if index in self.Drawn:
-                    continue
+
                 # Get Corresponding Rect for Cell
                 x1, y1, x2, y2 = self.boxes[index]
                 w = x2-x1
@@ -93,12 +91,17 @@ class Grid(Layer):
                 # print(cell)
                 if cell == 'X':
                     XSprite = Sprite('T3X_BLACK.png', x1+P, y1+P, w, h)
-                    self.App.AttachLayer(XSprite)
-                    self.Drawn.append(index)
+                    XSprite.Init(self.Width, self.Height,
+                                 self.Surface, self.App)
+                    XSprite.Setup()
+                    XSprite.Draw()
+
                 elif cell == 'O':
                     OSprite = Sprite('T3O_BLACK.png', x1+P, y1+P, w, h)
-                    self.App.AttachLayer(OSprite)
-                    self.Drawn.append(index)
+                    OSprite.Init(self.Width, self.Height,
+                                 self.Surface, self.App)
+                    OSprite.Setup()
+                    OSprite.Draw()
 
     def Draw(self):
         P = self.padding
@@ -118,11 +121,30 @@ class Grid(Layer):
                          (W + P, 2*H//3 + P), T)
         self.DrawXO()
 
-    def Update(self):
-        pass
+        if self.Game.IsFinished():
+            self.DeclareResult()
+
+    def DeclareResult(self):
+        font = pygame.font.Font('freesansbold.ttf', 32)
+        result = "Player {} Wins."
+        if self.Game.IsTied():
+            result = "GAME TIED!"
+        else:
+            result = result.format(self.Game.GetWinner())
+
+        green = (0, 255, 0)
+        blue = (33, 85, 205)
+        text = font.render(result, True, green, blue)
+
+        textRect = text.get_rect()
+        textRect.center = (self.Width//2, 75)
+        self.Surface.blit(text, textRect)
 
     def OnEvent(self, event):
         if not (event.type == pygame.MOUSEBUTTONUP and event.button == pygame.BUTTON_LEFT):
+            return
+        if self.Game.IsFinished():
+            self.Game.ResetGame()
             return
 
         P = self.padding
@@ -139,13 +161,17 @@ class Grid(Layer):
 
 
 class Application:
-    def __init__(self, Width, Height, Title):
+    def __init__(self, Width, Height, Title, Icon=None):
         self.Width = Width
         self.Height = Height
         self.Title = Title
         pygame.init()
         self.screen = pygame.display.set_mode([self.Width, self.Height])
         pygame.display.set_caption(self.Title)
+        if not Icon == None:
+            gameIcon = pygame.image.load(Icon)
+            pygame.display.set_icon(gameIcon)
+
         self.clock = pygame.time.Clock()
 
         self.Layers = []
@@ -189,7 +215,7 @@ class Application:
 # Application Constants
 COLOR_BLUE = (33, 85, 205)
 
-game = Application(512, 512, "Tic Tac Toe")
+game = Application(512, 512, "Tic Tac Toe", "icon.ico")
 bgLayer = Sprite('background.jpg', 0, 0)
 gridLayer = Grid(100, COLOR_BLUE, 3)
 game.AttachLayer(bgLayer)

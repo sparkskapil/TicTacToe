@@ -16,16 +16,26 @@ def ServeClient(conn, addr):
     with conn:
         print('Connected by', addr)
         while True:
-            data = conn.recv(1024)
-            for index, client in enumerate(clients):
-                if index == Index:
-                    continue
-                client[0].sendall(data)
+            try:
+                data = conn.recv(1024)
+                if len(data) == 0:
+                    print('{} connnection closed.'.format(addr))
+                    break
+                for index, client in enumerate(clients):
+                    if index == Index:
+                        continue
+                    client[0].sendall(data)
+
+            except Exception as e:
+                print(e)
+                break
+        clients.remove((conn, addr))
 
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     s.bind((HOST, PORT))
-    s.listen(2)
+    s.listen()
+    print('Server listening at {} Port {}'.format(HOST, PORT))
     while True:
         conn, addr = s.accept()
         thread = Thread(target=ServeClient, args=(conn, addr))

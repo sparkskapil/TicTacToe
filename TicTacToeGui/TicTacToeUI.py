@@ -143,8 +143,12 @@ class Grid(Layer):
     def OnEvent(self, event):
         if not (event.type == pygame.MOUSEBUTTONUP and event.button == pygame.BUTTON_LEFT):
             return
+
         if self.Game.IsFinished():
             self.Game.ResetGame()
+            return
+
+        if self.Game.IsBusy():
             return
 
         P = self.padding

@@ -1,6 +1,7 @@
 from os import system, name
 from copy import deepcopy
 from enum import Enum
+from threading import Thread
 
 
 def ClearConsole():
@@ -128,8 +129,10 @@ class AIPlayer:
                 scores[cell] = score
         return max(scores, key=scores.get)
 
-    def GetCell(self, grid):
+    def GetCell(self, grid, game=None):
         cell = self.MiniMax(grid)
+        if game != None:
+            game.TakeTurn(cell)
         return int(cell)
 
 
@@ -183,14 +186,17 @@ class AIPlayerFast:
                 scores[cell] = score
         return max(scores, key=scores.get)
 
-    def GetCell(self, grid):
+    def GetCell(self, grid, game=None):
         cell = self.MiniMax(grid)
+        if game != None:
+            game.TakeTurn(cell)
         return int(cell)
 
 
 class Game:
     def __init__(self):
         self.Players = PlayersFactory.GetPlayers(GameModes.Computer)
+        self.Busy = False
         self.ResetGame()
 
     def ResetGame(self):
@@ -220,7 +226,11 @@ class Game:
     def GetWinner(self):
         return self.Player.symbol
 
+    def IsBusy(self):
+        return self.Busy
+
     def TakeTurn(self, cell):
+        self.Busy = False
         if not 0 < cell < 10:
             return False
 
@@ -244,8 +254,9 @@ class Game:
 
         self.SwitchPlayer()
         if isinstance(self.Player, AIPlayerFast) or isinstance(self.Player, AIPlayer):
-            cell = self.Player.GetCell(self.Grid)
-            self.TakeTurn(cell)
+            thread = Thread(target=self.Player.GetCell, args=(self.Grid, self))
+            self.Busy = True
+            thread.start()
 
     def StartConsoleGame(self):
         while self.Finished == False:

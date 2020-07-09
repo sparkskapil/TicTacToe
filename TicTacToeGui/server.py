@@ -15,6 +15,10 @@ def ServeClient(conn, addr):
 
     with conn:
         print('Connected by', addr)
+        if len(clients) == 1:
+            conn.sendall(b'O')
+        else:
+            conn.sendall(b'X')
         while True:
             try:
                 data = conn.recv(1024)
@@ -36,7 +40,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     s.bind((HOST, PORT))
     s.listen()
     print('Server listening at {} Port {}'.format(HOST, PORT))
-    while True:
+    while len(clients) < 2:
         conn, addr = s.accept()
         thread = Thread(target=ServeClient, args=(conn, addr))
         thread.start()
+    print('Server closed for new connections.')

@@ -2,6 +2,7 @@ from os import system, name
 from copy import deepcopy
 from enum import Enum
 from threading import Thread
+import socket
 
 
 def ClearConsole():
@@ -19,6 +20,8 @@ class GameModes(Enum):
     PvP = 1
     # Player Vs Computer
     Computer = 2
+    # Player Vs Player over Network
+    Network = 3
 
 
 class PlayersFactory:
@@ -27,6 +30,12 @@ class PlayersFactory:
             return [Player('X'),  Player('O')]
         if GameMode == GameModes.Computer:
             return [Player('X'), AIPlayerFast('O', 'X')]
+        if GameMode == GameModes.Network:
+            player = NetworkPlayer('localhost', 5000)
+            if player.symbol == 'X':
+                return [player, Player('O')]
+            else:
+                return [Player('X'), player]
 
 
 class Player:
@@ -83,6 +92,13 @@ class Grid:
                 else:
                     print(self.grid[i][j], end=' ')
             print()
+
+    def to_string(self):
+        cellValues = ''
+        for i in range(0,3):
+            for j in range(0,3):
+                cellValues += str(self.grid[i][j]) + ', '
+        return cellValues
 
 
 # Bot with Simple Mini Max Algorithm
@@ -193,11 +209,53 @@ class AIPlayerFast:
         return int(cell)
 
 
+class NetworkPlayer:
+    def __init__(self, server, port, symbol=None):
+        self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.connection.connect((server, port))
+        if symbol == None:
+            # Get Symbol for the player
+            msg = self.connection.recv(1024)
+            self.symbol = msg.decode('utf-8')
+        else:
+            self.symbol = symbol
+        print('# [LOG] Network Player created with symbol {}', self.symbol)
+
+    def GetCell(self, grid, game=None):
+        print('# [LOG] Send current grid over network')
+        self.connection.sendall(grid.to_string().encode('utf-8'))
+
+        print('# [LOG] Waiting for network to send other players move')
+        # Get Players Turn
+        msg = self.connection.recv(1024)
+        cellValues = msg.decode('utf-8').strip().split(', ')
+        print('# [LOG] Cell Values from other player received')
+        print(cellValues)
+
+        cell = -1
+        for index, cellVal in enumerate(cellValues):
+            if (not cellVal == self.symbol) and grid.grid[index//3][index % 3] == 0:
+                cell = index+1
+                break
+        if game != None and cell != -1:
+            print('# [LOG] Other player took turn on cell {}'.format(cell))
+            game.TakeTurn(cell)
+
+        return int(cell)
+
+    def __del__(self):
+        self.connection.close()
+
+    def __repr__(self):
+        return 'NetworkPlayer {}'.format(self.symbol)
+
+
 class Game:
     def __init__(self):
-        self.Players = PlayersFactory.GetPlayers(GameModes.Computer)
+        self.Players = PlayersFactory.GetPlayers(GameModes.Network)
         self.Busy = False
         self.ResetGame()
+        self.HandlePlayersOnSwitch()
 
     def ResetGame(self):
         self.Finished = False
@@ -226,6 +284,12 @@ class Game:
     def GetWinner(self):
         return self.Player.symbol
 
+    def HandlePlayersOnSwitch(self):
+        if isinstance(self.Player, AIPlayerFast) or isinstance(self.Player, AIPlayer) or isinstance(self.Player, NetworkPlayer):
+            thread = Thread(target=self.Player.GetCell, args=(self.Grid, self))
+            self.Busy = True
+            thread.start()
+
     def IsBusy(self):
         return self.Busy
 
@@ -253,10 +317,7 @@ class Game:
             return False
 
         self.SwitchPlayer()
-        if isinstance(self.Player, AIPlayerFast) or isinstance(self.Player, AIPlayer):
-            thread = Thread(target=self.Player.GetCell, args=(self.Grid, self))
-            self.Busy = True
-            thread.start()
+        self.HandlePlayersOnSwitch()
 
     def StartConsoleGame(self):
         while self.Finished == False:

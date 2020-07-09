@@ -95,8 +95,8 @@ class Grid:
 
     def to_string(self):
         cellValues = ''
-        for i in range(0,3):
-            for j in range(0,3):
+        for i in range(0, 3):
+            for j in range(0, 3):
                 cellValues += str(self.grid[i][j]) + ', '
         return cellValues
 
@@ -219,24 +219,20 @@ class NetworkPlayer:
             self.symbol = msg.decode('utf-8')
         else:
             self.symbol = symbol
-        print('# [LOG] Network Player created with symbol {}', self.symbol)
+        print('# [LOG] Network Player created with symbol {}'.format(self.symbol))
 
     def GetCell(self, grid, game=None):
-        print('# [LOG] Send current grid over network')
-        self.connection.sendall(grid.to_string().encode('utf-8'))
-
+        if not game.LastCell == -1:
+            print('# [LOG] Send current grid over network')
+            self.connection.sendall(str(game.LastCell).encode('utf-8'))
+        if game.Finished:
+            return -1
         print('# [LOG] Waiting for network to send other players move')
         # Get Players Turn
         msg = self.connection.recv(1024)
-        cellValues = msg.decode('utf-8').strip().split(', ')
-        print('# [LOG] Cell Values from other player received')
-        print(cellValues)
+        cell = int(msg.decode('utf-8'))
 
-        cell = -1
-        for index, cellVal in enumerate(cellValues):
-            if (not cellVal == self.symbol) and grid.grid[index//3][index % 3] == 0:
-                cell = index+1
-                break
+        print('# [LOG] Cell Value from other player received -> {}'.format(cell))
         if game != None and cell != -1:
             print('# [LOG] Other player took turn on cell {}'.format(cell))
             game.TakeTurn(cell)
@@ -255,6 +251,7 @@ class Game:
         self.Players = PlayersFactory.GetPlayers(GameModes.Network)
         self.Busy = False
         self.ResetGame()
+        self.LastCell = -1
         self.HandlePlayersOnSwitch()
 
     def ResetGame(self):
@@ -282,7 +279,7 @@ class Game:
         return self.Winner == None and self.Finished
 
     def GetWinner(self):
-        return self.Player.symbol
+        return self.Winner.symbol
 
     def HandlePlayersOnSwitch(self):
         if isinstance(self.Player, AIPlayerFast) or isinstance(self.Player, AIPlayer) or isinstance(self.Player, NetworkPlayer):
@@ -302,6 +299,8 @@ class Game:
         col = (cell-1) % 3
 
         isSet = self.Grid.SetCell(row, col, self.Player.symbol)
+        self.LastCell = cell
+
         if isSet == False:
             return False
 
@@ -309,11 +308,15 @@ class Game:
         if isWon:
             self.Winner = self.Player
             self.Finished = True
+            self.SwitchPlayer()
+            self.HandlePlayersOnSwitch()
             return False
 
         isTied = self.Grid.CheckTie()
         if isTied:
             self.Finished = True
+            self.SwitchPlayer()
+            self.HandlePlayersOnSwitch()
             return False
 
         self.SwitchPlayer()

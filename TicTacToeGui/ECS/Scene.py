@@ -1,4 +1,5 @@
 from ECS.Registry import Registry
+from ECS.Entity import Entity
 
 
 class Scene:

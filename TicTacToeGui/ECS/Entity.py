@@ -7,4 +7,4 @@ class Entity:
         return self.Scene.GetRegistry().AttachComponent(self.entity, Component)
 
     def GetComponent(self, Typename):
-        self.Scene().GetRegistry().GetComponent(Typename)
+        return self.Scene.GetRegistry().GetComponent(self.entity, Typename)

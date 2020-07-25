@@ -8,3 +8,9 @@ class Entity:
 
     def GetComponent(self, Typename):
         return self.Scene.GetRegistry().GetComponent(self.entity, Typename)
+
+    def RemoveComponent(self, Typename):
+        return self.Scene.GetRegistry().RemoveComponent(self.entity, Typename)
+
+    def GetId(self):
+        return self.entity

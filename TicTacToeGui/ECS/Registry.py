@@ -8,7 +8,7 @@ def isclass(object):
         __doc__         documentation string
         __module__      name of module in which this class was defined"""
     return inspect.isclass(object)
- 
+
 
 def GetTypeName(object):
     if isclass(object):
@@ -65,10 +65,17 @@ class Registry:
         return result
 
     def RemoveComponent(self, entity, component):
-        pass
+        Type = GetTypeName(component)
+        removedComponent = self.components[entity].pop(Type)
+        if (removedComponent, entity) in self.repository[Type]:
+            self.repository[Type].remove((removedComponent, entity))
+        return removedComponent
 
     def RemoveEntity(self, entity):
-        pass
+        self.entities.remove(entity)
+        componentsToRemove = self.components.pop(entity)
+        for Type in componentsToRemove.keys():
+            self.repository[Type].remove(componentsToRemove[Type], entity)
 
 
 if __name__ == "__main__":

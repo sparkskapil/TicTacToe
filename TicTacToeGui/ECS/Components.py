@@ -12,7 +12,7 @@ class Vector:
             self.x = x[0] if len(x) > 0 else 0
             self.y = x[1] if len(x) > 1 else 0
             self.z = x[2] if len(x) > 2 else 0
-            
+
         else:
             self.x = x
             self.y = y
@@ -75,5 +75,16 @@ class TransformComponent:
         return 'Position: {} \nRotation: {} radians'.format(self.position.__repr__(), self.rotation.__repr__())
 
 
+class TagComponent:
+    def __init__(self, name="Unnamed Object"):
+        self.name = name
+
+    def __repr__(self):
+        return 'Tag: {}'.format(self.name)
+
+
 transformComp = TransformComponent((1, 2), (0, 0))
+TagComponent = TagComponent("Cube")
+
 print(transformComp)
+print(TagComponent)

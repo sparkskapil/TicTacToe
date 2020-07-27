@@ -83,8 +83,20 @@ class TagComponent:
         return 'Tag: {}'.format(self.name)
 
 
+class SpriteComponent:
+    def __init__(self, imagepath, width, height):
+        self.image = imagepath
+        self.width = width
+        self.height = height
+
+    def __repr__(self):
+        return '[SpriteComponent]\nImage: {}\nWidth: {}\nHeight:{}\n'.format(self.image, self.width, self.height)
+
+
 transformComp = TransformComponent((1, 2), (0, 0))
-TagComponent = TagComponent("Cube")
+tagComponent = TagComponent("Cube")
+sprite = SpriteComponent("spriteImage.png", 100, 100)
 
 print(transformComp)
-print(TagComponent)
+print(tagComponent)
+print(sprite)

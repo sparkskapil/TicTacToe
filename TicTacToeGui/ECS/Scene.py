@@ -1,5 +1,6 @@
 from ECS.Registry import Registry
 from ECS.Entity import Entity
+from ECS.Components import *
 
 
 class Scene:
@@ -25,10 +26,19 @@ class Scene:
         self.Reg.RemoveEntity(entId)
 
     def OnSetup(self):
-        pass
+        self.Setup()
+        sprites = self.Reg.GetComponentsByType(SpriteComponent)
+        for sprite, ent in sprites:
+            sprite.Image = pygame.image.load(sprite.image)
 
-    def OnRender(self):
-        pass
+    def OnRender(self, Surface):
+        sprites = self.Reg.GetComponentsByType(SpriteComponent)
+        for sprite, ent in sprites:
+            transform = self.Entities[ent].GetComponent(TransformComponent)
+            self.Surface.blit(sprite.Image, (transform.x, transform.y))
 
     def OnUpdate(self):
+        pass
+
+    def OnEvent(self, event):
         pass

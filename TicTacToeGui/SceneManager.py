@@ -20,7 +20,7 @@ class SceneManager:
             return SceneManager.Scenes[name]
 
     def Render():
-        SceneManager.CurrentScene.OnRender(Surface)
+        SceneManager.CurrentScene.OnRender(SceneManager.Surface)
 
     def Update():
         SceneManager.CurrentScene.OnUpdate()

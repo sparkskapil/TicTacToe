@@ -58,7 +58,7 @@ class Vector:
 
 
 class TransformComponent:
-    def __init__(self, position, rotation):
+    def __init__(self, position=Vector(), rotation=Vector()):
         if not isinstance(position, Vector) and not isinstance(position, tuple):
             raise TypeError("Position must be a vector or tuple")
         if isinstance(position, tuple):
@@ -84,19 +84,26 @@ class TagComponent:
 
 
 class SpriteComponent:
-    def __init__(self, imagepath, width, height):
+    class SpriteMode:
+        Original = 1
+        Fit = 2
+        RespectAspect = 3
+
+    def __init__(self, imagepath, width=None, height=None, mode=SpriteMode.Original):
         self.image = imagepath
         self.width = width
         self.height = height
+        self.mode = mode
 
     def __repr__(self):
         return '[SpriteComponent]\nImage: {}\nWidth: {}\nHeight:{}\n'.format(self.image, self.width, self.height)
 
 
-transformComp = TransformComponent((1, 2), (0, 0))
-tagComponent = TagComponent("Cube")
-sprite = SpriteComponent("spriteImage.png", 100, 100)
+if __name__ == "__main__":
+    transformComp = TransformComponent((1, 2), (0, 0))
+    tagComponent = TagComponent("Cube")
+    sprite = SpriteComponent("spriteImage.png", 100, 100)
 
-print(transformComp)
-print(tagComponent)
-print(sprite)
+    print(transformComp)
+    print(tagComponent)
+    print(sprite)

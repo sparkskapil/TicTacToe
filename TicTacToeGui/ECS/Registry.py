@@ -26,7 +26,8 @@ class Registry:
         self.repository = dict()
 
     def CreateEntity(self):
-        entity = self.ENTITYId+1
+        self.ENTITYId += 1
+        entity = self.ENTITYId
         self.entities.append(entity)
         return entity
 

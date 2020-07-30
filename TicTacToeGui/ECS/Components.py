@@ -94,6 +94,7 @@ class SpriteComponent:
         self.width = width
         self.height = height
         self.mode = mode
+        self.Image = None
 
     def __repr__(self):
         return '[SpriteComponent]\nImage: {}\nWidth: {}\nHeight:{}\n'.format(self.image, self.width, self.height)

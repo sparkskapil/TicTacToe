@@ -36,7 +36,9 @@ class Scene:
         sprites = self.Reg.GetComponentsByType(SpriteComponent)
         for sprite, ent in sprites:
             scaleSprite = False
-
+            if sprite.Image == None:
+                sprite.Image = pygame.image.load(sprite.image)
+                
             imW, imH = sprite.Image.get_size()
             if sprite.width == sprite.height == None and sprite.mode == SpriteComponent.SpriteMode.RespectAspect:
                 sprite.mode = SpriteComponent.SpriteMode.Original
@@ -49,14 +51,15 @@ class Scene:
                     sprite.height = Surface.get_height()
                 elif sprite.mode == SpriteComponent.SpriteMode.RespectAspect:
                     if sprite.width == None:
-                        sprite.width = imW*sprite.height / imH
+                        sprite.width = int(imW*sprite.height / imH)
                     if sprite.height == None:
-                        sprite.height = imH*sprite.width / imW
+                        sprite.height = int(imH*sprite.width / imW)
                 elif sprite.mode == SpriteComponent.SpriteMode.Original:
                     sprite.width = imW
                     sprite.height = imH
             if scaleSprite == True:
-                sprite.Image = pygame.transform.scale(sprite.Image, (sprite.width, sprite.height))
+                sprite.Image = pygame.transform.scale(
+                    sprite.Image, (sprite.width, sprite.height))
 
             transform = self.Entities[ent].GetComponent(TransformComponent)
             Surface.blit(

@@ -36,6 +36,19 @@ class SpriteRenderSystem:
             sprite.Image = pygame.transform.scale(
                 sprite.Image, (sprite.width, sprite.height))
 
+    def __shouldSpriteRender(self, sprite, transform):
+        # if sprite is offscreen it should not be rendered.
+        x = sprite.width + transform.position.x
+        y = sprite.height + transform.position.y
+
+        isOffscreen = False
+        if x < 0 or x > self.Surface.get_width():
+            isOffscreen = True
+        if y < 0 or y > self.Surface.get_height():
+            isOffscreen = True
+
+        return not isOffscreen
+
     def PreLoadSprites(self):
         sprites = self.Reg.GetComponentsByType(SpriteComponent)
         for sprite, ent in sprites:
@@ -48,5 +61,7 @@ class SpriteRenderSystem:
                 sprite.Image = pygame.image.load(sprite.image)
             self.__transformSprite(sprite)
             transform = self.Entities[ent].GetComponent(TransformComponent)
-            self.Surface.blit(
-                sprite.Image, (transform.position.x, transform.position.y))
+            
+            if self.__shouldSpriteRender(sprite, transform):
+                self.Surface.blit(
+                    sprite.Image, (transform.position.x, transform.position.y))

@@ -12,7 +12,7 @@ class Application:
         self.Title = Title
         pygame.init()
         self.screen = pygame.display.set_mode([self.Width, self.Height])
-        SceneManager.Surface = self.screen
+        SceneManager.SetSurface(self.screen)
         pygame.display.set_caption(self.Title)
         if not Icon == None:
             gameIcon = pygame.image.load(Icon)
@@ -45,5 +45,3 @@ class Application:
 
             pygame.display.flip()
         pygame.quit()
-
-

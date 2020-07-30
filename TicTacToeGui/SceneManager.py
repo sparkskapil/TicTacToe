@@ -10,7 +10,7 @@ class SceneManager:
 
     def SetScene(name):
         scene = SceneManager.Scenes[name]
-        scene.OnSetup()
+        scene.OnSetup(SceneManager.Surface)
         SceneManager.CurrentScene = scene
 
     def GetScene(name=None):
@@ -19,8 +19,13 @@ class SceneManager:
         else:
             return SceneManager.Scenes[name]
 
+    def SetSurface(Surface):
+        for scene in SceneManager.Scenes.keys():
+            SceneManager.Scenes[scene].Surface = Surface
+        SceneManager.Surface = Surface
+
     def Render():
-        SceneManager.CurrentScene.OnRender(SceneManager.Surface)
+        SceneManager.CurrentScene.OnRender()
 
     def Update():
         SceneManager.CurrentScene.OnUpdate()

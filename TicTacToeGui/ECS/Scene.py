@@ -1,7 +1,7 @@
 from ECS.Registry import Registry
 from ECS.Entity import Entity
 from ECS.Components import *
-import pygame
+from ECS.SpriteRendererSystem import *
 
 
 class Scene:
@@ -26,44 +26,14 @@ class Scene:
         entRemoved = self.Entities.pop(entId)
         self.Reg.RemoveEntity(entId)
 
-    def OnSetup(self):
+    def OnSetup(self, Surface):
+        self.Surface = Surface
         self.Setup()
-        sprites = self.Reg.GetComponentsByType(SpriteComponent)
-        for sprite, ent in sprites:
-            sprite.Image = pygame.image.load(sprite.image)
+        self.SpriteRenderer = SpriteRenderSystem(self, self.Surface)
+        self.SpriteRenderer.PreLoadSprites()
 
-    def OnRender(self, Surface):
-        sprites = self.Reg.GetComponentsByType(SpriteComponent)
-        for sprite, ent in sprites:
-            scaleSprite = False
-            if sprite.Image == None:
-                sprite.Image = pygame.image.load(sprite.image)
-                
-            imW, imH = sprite.Image.get_size()
-            if sprite.width == sprite.height == None and sprite.mode == SpriteComponent.SpriteMode.RespectAspect:
-                sprite.mode = SpriteComponent.SpriteMode.Original
-
-            # scale image if width and height not defined.
-            if sprite.width == None or sprite.height == None:
-                scaleSprite = True
-                if sprite.mode == SpriteComponent.SpriteMode.Fit:
-                    sprite.width = Surface.get_width()
-                    sprite.height = Surface.get_height()
-                elif sprite.mode == SpriteComponent.SpriteMode.RespectAspect:
-                    if sprite.width == None:
-                        sprite.width = int(imW*sprite.height / imH)
-                    if sprite.height == None:
-                        sprite.height = int(imH*sprite.width / imW)
-                elif sprite.mode == SpriteComponent.SpriteMode.Original:
-                    sprite.width = imW
-                    sprite.height = imH
-            if scaleSprite == True:
-                sprite.Image = pygame.transform.scale(
-                    sprite.Image, (sprite.width, sprite.height))
-
-            transform = self.Entities[ent].GetComponent(TransformComponent)
-            Surface.blit(
-                sprite.Image, (transform.position.x, transform.position.y))
+    def OnRender(self):
+        self.SpriteRenderer.RenderSpriteComponents()
 
     def OnUpdate(self):
         self.Update()

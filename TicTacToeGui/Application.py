@@ -1,7 +1,4 @@
 from SceneManager import SceneManager
-from ECS.Scene import Scene
-from ECS.Entity import Entity
-from ECS.Components import *
 import pygame
 
 

@@ -1,6 +1,5 @@
 from ECS.Registry import Registry
 from ECS.Entity import Entity
-from ECS.Components import *
 from ECS.Systems.SpriteRendererSystem import *
 from ECS.Systems.InputProcessingSystem import *
 

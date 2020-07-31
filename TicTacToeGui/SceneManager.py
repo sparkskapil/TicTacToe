@@ -1,34 +1,35 @@
 class SceneManager:
-    Scenes = dict()
-    CurrentScene = None
-    Surface = None
+    def __init__(self):
+        self.Scenes = dict()
+        self.CurrentScene = None
+        self.Surface = None
 
-    def AddScene(name, scene):
-        SceneManager.Scenes[name] = scene
-        if SceneManager.CurrentScene == None:
-            SceneManager.SetScene(name)
+    def AddScene(self, name, scene):
+        self.Scenes[name] = scene
+        if self.CurrentScene == None:
+            self.SetScene(name)
 
-    def SetScene(name):
-        scene = SceneManager.Scenes[name]
-        scene.OnSetup(SceneManager.Surface)
-        SceneManager.CurrentScene = scene
+    def SetScene(self, name):
+        scene = self.Scenes[name]
+        scene.OnSetup(self.Surface)
+        self.CurrentScene = scene
 
-    def GetScene(name=None):
+    def GetScene(self, name=None):
         if not name == None:
-            return SceneManager.CurrentScene
+            return self.CurrentScene
         else:
-            return SceneManager.Scenes[name]
+            return self.Scenes[name]
 
-    def SetSurface(Surface):
-        for scene in SceneManager.Scenes.keys():
-            SceneManager.Scenes[scene].Surface = Surface
-        SceneManager.Surface = Surface
+    def SetSurface(self, Surface):
+        for scene in self.Scenes.keys():
+            self.Scenes[scene].Surface = Surface
+        self.Surface = Surface
 
-    def Render():
-        SceneManager.CurrentScene.OnRender()
+    def Render(self):
+        self.CurrentScene.OnRender()
 
-    def Update():
-        SceneManager.CurrentScene.OnUpdate()
+    def Update(self):
+        self.CurrentScene.OnUpdate()
 
-    def Event(event):
-        SceneManager.CurrentScene.OnEvent(event)
+    def Event(self, event):
+        self.CurrentScene.OnEvent(event)

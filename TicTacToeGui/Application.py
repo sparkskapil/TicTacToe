@@ -10,9 +10,11 @@ class Application:
         self.Width = Width
         self.Height = Height
         self.Title = Title
+        self.SceneManager = SceneManager()
+
         pygame.init()
         self.screen = pygame.display.set_mode([self.Width, self.Height])
-        SceneManager.SetSurface(self.screen)
+        self.SceneManager.SetSurface(self.screen)
         pygame.display.set_caption(self.Title)
         if not Icon == None:
             gameIcon = pygame.image.load(Icon)
@@ -21,6 +23,9 @@ class Application:
         self.clock = pygame.time.Clock()
         self.Running = True
 
+    def GetSceneManager(self):
+        return self.SceneManager
+
     def OnEvent(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -28,7 +33,7 @@ class Application:
             if event.type == pygame.KEYDOWN and pygame.K_ESCAPE == event.key:
                 self.Running = False
 
-            SceneManager.Event(event)
+            self.SceneManager.Event(event)
 
     def Run(self):
 
@@ -37,11 +42,11 @@ class Application:
             self.OnEvent()
 
             # Update Layers
-            SceneManager.Update()
+            self.SceneManager.Update()
 
             # Draw Layers
             self.screen.fill((0, 0, 0))
-            SceneManager.Render()
+            self.SceneManager.Render()
 
             pygame.display.flip()
         pygame.quit()

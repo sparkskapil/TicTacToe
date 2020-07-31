@@ -1,4 +1,3 @@
-from SceneManager import SceneManager
 from ECS.Scene import Scene
 from ECS.Components import *
 
@@ -44,5 +43,5 @@ class TicTacToeGame(Scene):
 
 
 app = Application(500, 500, "Test Scene")
-SceneManager.AddScene("MainScene", TicTacToeGame())
+app.GetSceneManager().AddScene("MainScene", TicTacToeGame())
 app.Run()

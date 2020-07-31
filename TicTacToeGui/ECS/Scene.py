@@ -1,7 +1,8 @@
 from ECS.Registry import Registry
 from ECS.Entity import Entity
 from ECS.Components import *
-from ECS.SpriteRendererSystem import *
+from ECS.Systems.SpriteRendererSystem import *
+from ECS.Systems.InputProcessingSystem import *
 
 
 class Scene:
@@ -31,6 +32,7 @@ class Scene:
         self.Setup()
         self.SpriteRenderer = SpriteRenderSystem(self, self.Surface)
         self.SpriteRenderer.PreLoadSprites()
+        self.InputHandler = InputProcessingSystem(self)
 
     def OnRender(self):
         self.SpriteRenderer.RenderSpriteComponents()
@@ -39,4 +41,4 @@ class Scene:
         self.Update()
 
     def OnEvent(self, event):
-        pass
+        self.InputHandler.CheckAndProcessButtonClicks(event)

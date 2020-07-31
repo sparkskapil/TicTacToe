@@ -100,6 +100,20 @@ class SpriteComponent:
         return '[SpriteComponent]\nImage: {}\nWidth: {}\nHeight:{}\n'.format(self.image, self.width, self.height)
 
 
+class LabelComponent:
+    def __init__(self, text, font):
+        self.text = text
+        self.font = font
+
+
+class ButtonComponent:
+    def __init__(self, width, height, action, enabled=True):
+        self.action = action
+        self.width = width
+        self.height = height
+        self.enabled = enabled
+
+
 if __name__ == "__main__":
     transformComp = TransformComponent((1, 2), (0, 0))
     tagComponent = TagComponent("Cube")

@@ -114,6 +114,14 @@ class ButtonComponent:
         self.enabled = enabled
 
 
+class ScriptComponent:
+    def __init__(self, module, classname):
+        self.module = __import__(module)
+        ScriptClass = getattr(self.module, classname)
+        self.ScriptInstance = ScriptClass()
+        
+
+
 if __name__ == "__main__":
     transformComp = TransformComponent((1, 2), (0, 0))
     tagComponent = TagComponent("Cube")

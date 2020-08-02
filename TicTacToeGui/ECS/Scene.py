@@ -2,6 +2,7 @@ from ECS.Registry import Registry
 from ECS.Entity import Entity
 from ECS.Systems.SpriteRendererSystem import *
 from ECS.Systems.InputProcessingSystem import *
+from ECS.Systems.ScriptProcessingSystem import *
 
 
 class Scene:
@@ -32,11 +33,13 @@ class Scene:
         self.SpriteRenderer = SpriteRenderSystem(self, self.Surface)
         self.SpriteRenderer.PreLoadSprites()
         self.InputHandler = InputProcessingSystem(self)
+        self.ScriptProcessor = ScriptProcessingSystem(self)
 
     def OnRender(self):
         self.SpriteRenderer.RenderSpriteComponents()
 
     def OnUpdate(self):
+        self.ScriptProcessor.UpdateGameObjects()
         self.Update()
 
     def OnEvent(self, event):

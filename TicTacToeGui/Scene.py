@@ -40,6 +40,8 @@ class TicTacToeGame(Scene):
         box2.AddComponent(OSprite)
 
         grid.AddComponent(ScriptComponent("Script", "GameScript"))
+        grid.AddComponent(LabelComponent(
+            "TicTacToe", 'freesansbold.ttf', 32, (0, 0, 0)))
 
     def Update(self):
         pass

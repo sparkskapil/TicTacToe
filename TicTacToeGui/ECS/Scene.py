@@ -3,6 +3,7 @@ from ECS.Entity import Entity
 from ECS.Systems.SpriteRendererSystem import *
 from ECS.Systems.InputProcessingSystem import *
 from ECS.Systems.ScriptProcessingSystem import *
+from ECS.Systems.LabelRenderingSystem import *
 
 
 class Scene:
@@ -34,9 +35,12 @@ class Scene:
         self.SpriteRenderer.PreLoadSprites()
         self.InputHandler = InputProcessingSystem(self)
         self.ScriptProcessor = ScriptProcessingSystem(self)
+        self.LabelRenderer = LabelRenderingSystem(self, self.Surface)
+        self.LabelRenderer.PreloadFonts()
 
     def OnRender(self):
         self.SpriteRenderer.RenderSpriteComponents()
+        self.LabelRenderer.RenderLable()
 
     def OnUpdate(self):
         self.ScriptProcessor.UpdateGameObjects()

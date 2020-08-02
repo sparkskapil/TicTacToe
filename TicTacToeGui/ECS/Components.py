@@ -101,9 +101,12 @@ class SpriteComponent:
 
 
 class LabelComponent:
-    def __init__(self, text, font):
+    def __init__(self, text, font, fontSize, foreground=(255, 255, 255), background=None):
         self.text = text
         self.font = font
+        self.size = fontSize
+        self.color = foreground
+        self.background = background
 
 
 class ButtonComponent:
@@ -119,7 +122,6 @@ class ScriptComponent:
         self.module = __import__(module)
         ScriptClass = getattr(self.module, classname)
         self.ScriptInstance = ScriptClass()
-        
 
 
 if __name__ == "__main__":

@@ -1,11 +1,16 @@
-class GameScript:
-    def __init__(self):
-        self.updated = False
+from ECS.Scriptable import Scriptable
+from ECS.Components import TransformComponent
+
+
+class GameScript(Scriptable):
+    def __init__(self, scene, entity):
+        Scriptable.__init__(self, scene, entity)
 
     def Setup(self):
-        pass
+        self.count = 0
 
     def Update(self):
-        if not self.updated:
+        if self.count < 2:
             print("Game Object Updating...")
-            self.updated = True
+            print(self.GetComponent(TransformComponent))
+        self.count += 1

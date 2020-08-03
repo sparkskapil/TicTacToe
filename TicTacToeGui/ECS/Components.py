@@ -120,8 +120,8 @@ class ButtonComponent:
 class ScriptComponent:
     def __init__(self, module, classname):
         self.module = __import__(module)
-        ScriptClass = getattr(self.module, classname)
-        self.ScriptInstance = ScriptClass()
+        self.ScriptClass = getattr(self.module, classname)
+        self.ScriptInstance = None
 
 
 if __name__ == "__main__":

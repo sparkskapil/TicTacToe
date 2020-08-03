@@ -1,9 +1,9 @@
 from ECS.Registry import Registry
 from ECS.Entity import Entity
-from ECS.Systems.SpriteRendererSystem import *
-from ECS.Systems.InputProcessingSystem import *
-from ECS.Systems.ScriptProcessingSystem import *
-from ECS.Systems.LabelRenderingSystem import *
+from ECS.Systems.SpriteRendererSystem import SpriteRenderSystem
+from ECS.Systems.InputProcessingSystem import InputProcessingSystem
+from ECS.Systems.ScriptProcessingSystem import ScriptProcessingSystem
+from ECS.Systems.LabelRenderingSystem import LabelRenderingSystem
 
 
 class Scene:
@@ -25,11 +25,11 @@ class Scene:
             entId = entity.GetId()
         elif entity.is_integer():
             entId = entity
-        entRemoved = self.Entities.pop(entId)
+        self.Entities.pop(entId)
         self.Reg.RemoveEntity(entId)
 
-    def OnSetup(self, Surface):
-        self.Surface = Surface
+    def OnSetup(self, surface):
+        self.Surface = surface
         self.Setup()
         self.SpriteRenderer = SpriteRenderSystem(self, self.Surface)
         self.SpriteRenderer.PreLoadSprites()
@@ -48,3 +48,13 @@ class Scene:
 
     def OnEvent(self, event):
         self.InputHandler.CheckAndProcessButtonClicks(event)
+
+    def Setup(self):
+        '''
+        To be overridden by the derrived class
+        '''
+
+    def Update(self):
+        '''
+        To be overridden by the derrived class
+        '''

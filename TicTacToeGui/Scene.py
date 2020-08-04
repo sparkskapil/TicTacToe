@@ -1,10 +1,15 @@
 from ECS.Scene import Scene
-from ECS.Components import *
+from ECS.Components import TransformComponent, SpriteComponent
+from ECS.Components import ButtonComponent, LabelComponent, ScriptComponent
 
 from Application import Application
 
 
 class TicTacToeGame(Scene):
+    '''
+    Tic Tac Toe Game Main Scene
+    '''
+
     def __init__(self):
         Scene.__init__(self)
 
@@ -22,13 +27,13 @@ class TicTacToeGame(Scene):
         gridSprite.mode = SpriteComponent.SpriteMode.RespectAspect
         grid.AddComponent(gridSprite)
 
-        XSprite = SpriteComponent("T3X_BLACK.png")
-        XSprite.width = 100
-        XSprite.mode = SpriteComponent.SpriteMode.RespectAspect
+        xSprite = SpriteComponent("T3X_BLACK.png")
+        xSprite.width = 100
+        xSprite.mode = SpriteComponent.SpriteMode.RespectAspect
 
-        OSprite = SpriteComponent("T3O_BLACK.png")
-        OSprite.width = 100
-        OSprite.mode = SpriteComponent.SpriteMode.RespectAspect
+        oSprite = SpriteComponent("T3O_BLACK.png")
+        oSprite.width = 100
+        oSprite.mode = SpriteComponent.SpriteMode.RespectAspect
 
         box1 = self.CreateEntity()
         box1.AddComponent(TransformComponent((70, 70, 0)))
@@ -37,7 +42,7 @@ class TicTacToeGame(Scene):
 
         box2 = self.CreateEntity()
         box2.AddComponent(TransformComponent((190, 70, 0)))
-        box2.AddComponent(OSprite)
+        box2.AddComponent(oSprite)
 
         grid.AddComponent(ScriptComponent("Script", "GameScript"))
         grid.AddComponent(LabelComponent(

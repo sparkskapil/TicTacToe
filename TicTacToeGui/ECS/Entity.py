@@ -5,6 +5,9 @@ class Entity:
 
     def AddComponent(self, Component):
         return self.Scene.GetRegistry().AttachComponent(self.entity, Component)
+    
+    def GetComponents(self):
+        return self.Scene.GetRegistry().GetComponentsGroup(self.entity)
 
     def GetComponent(self, Typename):
         return self.Scene.GetRegistry().GetComponent(self.entity, Typename)

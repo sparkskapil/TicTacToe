@@ -52,6 +52,7 @@ class TicTacToeGame(Scene):
         pass
 
 
-app = Application(500, 500, "Test Scene")
-app.GetSceneManager().AddScene("MainScene", TicTacToeGame())
-app.Run()
+if __name__ == "__main__":
+    app = Application(500, 500, "Test Scene")
+    app.GetSceneManager().AddScene("MainScene", TicTacToeGame())
+    app.Run()

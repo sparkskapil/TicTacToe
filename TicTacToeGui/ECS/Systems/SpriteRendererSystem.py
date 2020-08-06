@@ -28,23 +28,29 @@ class SpriteRenderSystem:
 
         # scale image if width and height not defined.
         scaleSprite = False
-        if sprite.width == None or sprite.height == None:
+        if sprite.width is None or sprite.height is None:
             scaleSprite = True
             self.__computeWidthHeight(sprite)
-
-        if scaleSprite == True:
+            
+        imgWidth = sprite.Image.get_width()
+        imgHeight = sprite.Image.get_height()
+        if not sprite.width == imgWidth or not sprite.height == imgHeight:
+            scaleSprite = True
+            
+        if scaleSprite:
+            sprite.Image = pygame.image.load(sprite.image)
             sprite.Image = pygame.transform.scale(
                 sprite.Image, (sprite.width, sprite.height))
 
     def __shouldSpriteRender(self, sprite, transform):
         # if sprite is offscreen it should not be rendered.
-        x = sprite.width + transform.position.x
-        y = sprite.height + transform.position.y
+        x = transform.position.x
+        y = transform.position.y
 
         isOffscreen = False
-        if x < 0 or x > self.Surface.get_width():
+        if x < -self.Surface.get_width() or x > self.Surface.get_width():
             isOffscreen = True
-        if y < 0 or y > self.Surface.get_height():
+        if y < -self.Surface.get_height() or y > self.Surface.get_height():
             isOffscreen = True
 
         return not isOffscreen
@@ -61,7 +67,7 @@ class SpriteRenderSystem:
                 sprite.Image = pygame.image.load(sprite.image)
             self.__transformSprite(sprite)
             transform = self.Entities[ent].GetComponent(TransformComponent)
-            
+
             if self.__shouldSpriteRender(sprite, transform):
                 self.Surface.blit(
                     sprite.Image, (transform.position.x, transform.position.y))

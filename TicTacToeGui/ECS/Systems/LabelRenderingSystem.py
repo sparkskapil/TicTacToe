@@ -19,11 +19,16 @@ class LabelRenderingSystem:
     def RenderLable(self):
         labels = self.Reg.GetComponentsByType(LabelComponent)
         for label, entt in labels:
-            if not hasattr(label, "Font"):
+            if not hasattr(label, "Font") or not label.Font.get_ascent() == label.size:
                 self.__preloadFontForLabel(label)
+
             pos = self.Entities[entt].GetComponent(TransformComponent).position
-            text = label.Font.render(
-                label.text, True, label.color, label.background)
+            bgColor = label.background
+            if not label.background is None and label.background[-1] == 255:
+                bgColor = None
+
+            text = label.Font.render(label.text, True, label.color, bgColor)
+            
             textRect = text.get_rect()
             textRect.center = (pos.x, pos.y)
             self.Surface.blit(text, textRect)

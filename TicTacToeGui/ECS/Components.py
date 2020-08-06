@@ -154,7 +154,7 @@ class TransformComponent:
         self.rotation = rotation
 
     def __repr__(self):
-        return 'Position: {} \nRotation: {} radians'.format(self.position.__repr__(), self.rotation.__repr__())
+        return '[TransformComponent]\nPosition: {} \nRotation: {} radians'.format(self.position.__repr__(), self.rotation.__repr__())
 
 
 class TagComponent:
@@ -162,7 +162,7 @@ class TagComponent:
         self.name = name
 
     def __repr__(self):
-        return 'Tag: {}'.format(self.name)
+        return '[TagComponent]\nTag: {}'.format(self.name)
 
 
 class SpriteComponent:
@@ -190,6 +190,9 @@ class LabelComponent:
         self.color = foreground
         self.background = background
 
+    def __repr__(self):
+        return "[LabelComponent]\nText: {}\nFont: {}\nSize: {}\nColor: {}\nBackground:{}".format(self.text, self.font, self.size, self.color, self.background)
+
 
 class ButtonComponent:
     def __init__(self, width, height, action, enabled=True):
@@ -198,12 +201,22 @@ class ButtonComponent:
         self.height = height
         self.enabled = enabled
 
+    def __repr__(self):
+        import inspect
+        action = self.action.__name__
+        if action == "<lambda>":
+            action = inspect.getsource(self.action).split("lambda:")[1].strip()
+        return "[ButtonComponent]\nAction: {} \nWidth: {} \nHeight: {} \nEnabled: {}".format(action, self.width, self.height, self.enabled)
+
 
 class ScriptComponent:
     def __init__(self, module, classname):
-        self.module = __import__(module)
-        self.ScriptClass = getattr(self.module, classname)
+        self.Module = __import__(module)
+        self.ScriptClass = getattr(self.Module, classname)
         self.ScriptInstance = None
+
+    def __repr__(self):
+        return "[ScriptComponent]\nModule: {} \nClass: {}".format(self.Module.__name__, self.ScriptClass.__name__)
 
 
 if __name__ == "__main__":

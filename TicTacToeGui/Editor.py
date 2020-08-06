@@ -8,6 +8,8 @@ from PygameHelpers import *
 from SceneManager import SceneManager
 
 from Scene import TicTacToeGame
+from ECS.Components import Vector, TransformComponent, TagComponent, LabelComponent
+from ECS.Components import Vector, SpriteComponent
 
 
 class Editor:
@@ -60,6 +62,103 @@ class Editor:
             event.pos = event.pos[0] - x, event.pos[1] - y
         return event
 
+    def __imguiDrawTransformComponentComponent(self, component):
+        limit = max(self.WindowSize[0], self.WindowSize[1])
+        changed, values = imgui.drag_int3("POSITION", component.position.x, component.position.y,
+                                          component.position.z, 1, -limit, limit)
+        if changed:
+            component.position = Vector(values)
+        changed, values = imgui.drag_int3("ROTATION", component.rotation.x, component.rotation.y,
+                                          component.rotation.z, 1, -limit, limit)
+        if changed:
+            component.rotation = Vector(values)
+
+    def __imguiDrawTagComponent(self, component):
+        text = component.name
+        changed, text = imgui.input_text("TAGNAME", text, 100,
+                                         imgui.INPUT_TEXT_CHARS_UPPERCASE)
+        if changed:
+            component.name = text
+
+    def __imguiDrawLabelComponent(self, component):
+        text = component.text
+        changed, text = imgui.input_text("TEXT", text, 256)
+        if changed:
+            component.text = text
+
+        font = component.font
+        changed, font = imgui.input_text("FONT", font, 256)
+        if changed:
+            component.font = font
+
+        fontSize = component.size
+        changed, fontSize = imgui.drag_int("FONTSIZE", fontSize, 1, 1, 120)
+        if changed:
+            component.size = fontSize
+
+        # component.color
+        foreground = tuple(map(lambda x: x/255, component.color))
+        changed, foreground = imgui.color_edit3("TEXT COLOR", *foreground)
+        if changed:
+            component.color = tuple(map(lambda x: x*255, foreground))
+
+        background = tuple(
+            map(lambda x: x/255, (0, 0, 0, 255)))  # (0, 0, 0, 1)
+        if not component.background == None:
+            # component.background
+            background = tuple(map(lambda x: x/255, component.background))
+        changed, background = imgui.color_edit4("BG COLOR", *background)
+
+        if changed:
+            component.background = tuple(map(lambda x: x*255, background))
+
+    def __imguiDrawSpriteComponent(self, component):
+        image = component.image
+        changed, image = imgui.input_text("IMAGE PATH", image, 256)
+        if changed:
+            component.image = image
+
+        width = component.width
+        changed, width = imgui.drag_int(
+            "WIDTH", width, 1, -self.WindowSize[0], self.WindowSize[1])
+        if changed:
+            component.width = width
+
+        height = component.height
+        changed, height = imgui.drag_int(
+            "HEIGHT", height, 1, -self.WindowSize[0], self.WindowSize[1])
+        if changed:
+            component.height = height
+
+        # mode = component.mode
+        # if imgui.begin_popup("select-popup"):
+        #     imgui.text("Select one")
+        #     imgui.separator()
+        #     imgui.selectable("One")
+        #     imgui.selectable("Two")
+        #     imgui.selectable("Three")
+        #     imgui.end_popup()
+
+    def __imguiDrawComponent(self, component):
+        compName = component.__class__.__name__
+        expanded, _ = imgui.collapsing_header(compName, True)
+        if expanded:
+            if isinstance(component, TransformComponent):
+                self.__imguiDrawTransformComponentComponent(component)
+
+            elif isinstance(component, TagComponent):
+                self.__imguiDrawTagComponent(component)
+
+            elif isinstance(component, LabelComponent):
+                self.__imguiDrawLabelComponent(component)
+
+            elif isinstance(component, SpriteComponent):
+                self.__imguiDrawSpriteComponent(component)
+
+            else:
+                imgui.text(component.__repr__())
+                imgui.text("\n")
+
     def OnEvent(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -67,9 +166,10 @@ class Editor:
             if event.type == pygame.KEYDOWN and pygame.K_ESCAPE == event.key:
                 self.Running = False
             self.ImGUIImpl.process_event(event)
-            
+
             if self.GameMode:
-                self.SceneMangaer.Event(self.__modifyEventRelativeToScene(event))
+                self.SceneMangaer.Event(
+                    self.__modifyEventRelativeToScene(event))
 
     def OnRender(self):
         # BUTTER = (255, 245, 100)
@@ -79,7 +179,7 @@ class Editor:
         # self.offscreenSurface.blit(words, (150, 250))
         if self.GameMode:
             self.SceneMangaer.Update()
-            
+
         self.SceneMangaer.Render()
 
     def OnImGuiRender(self):
@@ -115,7 +215,7 @@ class Editor:
         tex, w, h = GLHelpers.SurfaceToTexture(self.offscreenSurface)
         self.Texture = tex
 
-        windowFlags = imgui.WINDOW_NO_RESIZE | imgui.WINDOW_NO_MOVE
+        windowFlags = imgui.WINDOW_NO_RESIZE | imgui.WINDOW_NO_MOVE | imgui.WINDOW_NO_COLLAPSE
 
         YOffset = menubarHeight - 2
         Width = self.WindowSize[0]
@@ -130,6 +230,10 @@ class Editor:
             for entId in self.SceneMangaer.GetScene().Entities.keys():
                 if not entId in self.selected:
                     self.selected[entId] = False
+                if not self.SelectedEntity == None and entId == self.SelectedEntity.entity:
+                    imgui.unindent(20)
+                    imgui.bullet()
+                    imgui.indent(20)
                 _, currentlySelected = imgui.selectable(
                     "Entity {}".format(entId), self.selected[entId])
                 self.selected[entId] = not currentlySelected == self.selected[entId]
@@ -163,9 +267,7 @@ class Editor:
         if not self.SelectedEntity == None:
             imgui.text("Entity {}".format(self.SelectedEntity.entity))
             for component in self.SelectedEntity.GetComponents():
-                if imgui.tree_node(component.__class__.__name__, imgui.TREE_NODE_DEFAULT_OPEN):
-                    imgui.text(component.__repr__())
-                    imgui.tree_pop()
+                self.__imguiDrawComponent(component)
         imgui.end()
 
         gl.glClearColor(1, 1, 1, 1)

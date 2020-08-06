@@ -51,6 +51,14 @@ class Editor:
         self.Running = True
         self.SelectedEntity = None
         self.selected = dict()
+        self.ScenePosition = (0, 0)
+        self.GameMode = False
+
+    def __modifyEventRelativeToScene(self, event):
+        x, y = self.ScenePosition
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            event.pos = event.pos[0] - x, event.pos[1] - y
+        return event
 
     def OnEvent(self):
         for event in pygame.event.get():
@@ -59,6 +67,9 @@ class Editor:
             if event.type == pygame.KEYDOWN and pygame.K_ESCAPE == event.key:
                 self.Running = False
             self.ImGUIImpl.process_event(event)
+            
+            if self.GameMode:
+                self.SceneMangaer.Event(self.__modifyEventRelativeToScene(event))
 
     def OnRender(self):
         # BUTTER = (255, 245, 100)
@@ -66,6 +77,9 @@ class Editor:
         # words = textFont.render(
         #     "Count: " + str(pygame.time.get_ticks()), True, BUTTER)
         # self.offscreenSurface.blit(words, (150, 250))
+        if self.GameMode:
+            self.SceneMangaer.Update()
+            
         self.SceneMangaer.Render()
 
     def OnImGuiRender(self):
@@ -80,6 +94,18 @@ class Editor:
                 )
                 if clicked_quit:
                     self.Running = False
+                imgui.end_menu()
+            if imgui.begin_menu("Game", True):
+                clicked_run, selected_quit = imgui.menu_item(
+                    "Run", 'Cmd+R', False, not self.GameMode
+                )
+                if clicked_run:
+                    self.GameMode = True
+                clicked_stop, selected_quit = imgui.menu_item(
+                    "Stop", 'Cmd+T', False, self.GameMode
+                )
+                if clicked_stop:
+                    self.GameMode = False
                 imgui.end_menu()
             menubarWidth, menubarHeight = imgui.get_item_rect_size()
             imgui.end_main_menu_bar()
@@ -122,8 +148,11 @@ class Editor:
         imgui.set_next_window_size(Width*0.50, Height)
         imgui.begin("Viewport", False, windowFlags)
         winWidth, winHeight = imgui.get_window_size()
-        imgui.set_cursor_pos_x((winWidth - w)/2)
-        imgui.set_cursor_pos_y((winHeight - h)/2)
+        self.ScenePosition = Width*0.25 + \
+            (winWidth - w)/2, YOffset + (winHeight - h)/2
+        imgui.set_cursor_pos_x(self.ScenePosition[0] - Width*0.25)
+        imgui.set_cursor_pos_y(self.ScenePosition[1] - YOffset)
+
         imgui.image(tex, w, h)
         imgui.end()
 

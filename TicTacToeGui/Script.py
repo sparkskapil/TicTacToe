@@ -10,7 +10,6 @@ class GameScript(Scriptable):
         self.count = 0
 
     def Update(self):
-        if self.count < 2:
+        if self.count < 1:
             print("Game Object Updating...")
-            print(self.GetComponent(TransformComponent))
         self.count += 1

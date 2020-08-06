@@ -9,8 +9,6 @@ class InputProcessingSystem:
 
     def CheckAndProcessButtonClicks(self, event):
         buttons = self.Reg.GetComponentsByType(ButtonComponent)
-        mouse = pygame.mouse.get_pos()
-        click = pygame.mouse.get_pressed()
         if not event.type == pygame.MOUSEBUTTONDOWN:
             return
         for button, ent in buttons:

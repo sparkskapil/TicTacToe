@@ -22,11 +22,11 @@ class Editor:
         io.display_size = size
         io = imgui.get_io()
         io.display_size = size
-        self.WindowSize = imgui.get_io().display_size
         self.ImGUIImpl = impl
+        self.OnApplicationResize()
 
     def OnApplicationResize(self):
-        pass
+        self.WindowSize = imgui.get_io().display_size
 
     def updateViewPortSize(self, width, height):
         self.offscreenSurface = pygame.Surface((width, height))
@@ -49,6 +49,8 @@ class Editor:
         self.SceneMangaer = SceneManager()
         self.updateViewPortSize(size[0], size[1])
         self.Running = True
+        self.SelectedEntity = None
+        self.selected = dict()
 
     def OnEvent(self):
         for event in pygame.event.get():
@@ -57,7 +59,6 @@ class Editor:
             if event.type == pygame.KEYDOWN and pygame.K_ESCAPE == event.key:
                 self.Running = False
             self.ImGUIImpl.process_event(event)
-            
 
     def OnRender(self):
         # BUTTER = (255, 245, 100)
@@ -68,17 +69,19 @@ class Editor:
         self.SceneMangaer.Render()
 
     def OnImGuiRender(self):
+        self.OnApplicationResize()
         imgui.new_frame()
-        
+        menubarWidth = 0
+        menubarHeight = 0
         if imgui.begin_main_menu_bar():
             if imgui.begin_menu("File", True):
                 clicked_quit, selected_quit = imgui.menu_item(
                     "Quit", 'Cmd+Q', False, True
                 )
                 if clicked_quit:
-                    exit(1)
-
+                    self.Running = False
                 imgui.end_menu()
+            menubarWidth, menubarHeight = imgui.get_item_rect_size()
             imgui.end_main_menu_bar()
         # Create texture from Pygame Surface
         if hasattr(self, "Texture"):
@@ -86,12 +89,56 @@ class Editor:
         tex, w, h = GLHelpers.SurfaceToTexture(self.offscreenSurface)
         self.Texture = tex
 
-        imgui.begin("Viewport", True)
+        windowFlags = imgui.WINDOW_NO_RESIZE | imgui.WINDOW_NO_MOVE
+
+        YOffset = menubarHeight - 2
+        Width = self.WindowSize[0]
+        Height = self.WindowSize[1] - YOffset
+
+        # Draw Left Pane
+        imgui.set_next_window_position(0, YOffset)
+        imgui.set_next_window_size(Width*0.25, Height)
+        imgui.begin("Scene Hierarchy", False, windowFlags)
+
+        if imgui.tree_node("Scene [{}]".format(self.SceneMangaer.CurrentSceneName)):
+            for entId in self.SceneMangaer.GetScene().Entities.keys():
+                if not entId in self.selected:
+                    self.selected[entId] = False
+                _, currentlySelected = imgui.selectable(
+                    "Entity {}".format(entId), self.selected[entId])
+                self.selected[entId] = not currentlySelected == self.selected[entId]
+            imgui.tree_pop()
+        imgui.end()
+
+        for entId in self.selected.keys():
+            if self.selected[entId]:
+                self.SelectedEntity = self.SceneMangaer.GetScene(
+                ).Entities[entId]
+            else:
+                self.selected[entId] = False
+
+        # Draw ViewPort
+        imgui.set_next_window_position(Width*0.25, YOffset)
+        imgui.set_next_window_size(Width*0.50, Height)
+        imgui.begin("Viewport", False, windowFlags)
         winWidth, winHeight = imgui.get_window_size()
         imgui.set_cursor_pos_x((winWidth - w)/2)
         imgui.set_cursor_pos_y((winHeight - h)/2)
         imgui.image(tex, w, h)
         imgui.end()
+
+        # Draw Right Pane
+        imgui.set_next_window_position(Width*0.75, YOffset)
+        imgui.set_next_window_size(Width*0.25, Height)
+        imgui.begin("Inspector", False, windowFlags)
+        if not self.SelectedEntity == None:
+            imgui.text("Entity {}".format(self.SelectedEntity.entity))
+            for component in self.SelectedEntity.GetComponents():
+                if imgui.tree_node(component.__class__.__name__, imgui.TREE_NODE_DEFAULT_OPEN):
+                    imgui.text(component.__repr__())
+                    imgui.tree_pop()
+        imgui.end()
+
         gl.glClearColor(1, 1, 1, 1)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT)
         imgui.render()

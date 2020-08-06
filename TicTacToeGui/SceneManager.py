@@ -3,6 +3,7 @@ class SceneManager:
         self.Scenes = dict()
         self.CurrentScene = None
         self.Surface = None
+        self.CurrentSceneName = ""
 
     def AddScene(self, name, scene):
         self.Scenes[name] = scene
@@ -13,6 +14,7 @@ class SceneManager:
         scene = self.Scenes[name]
         scene.OnSetup(self.Surface)
         self.CurrentScene = scene
+        self.CurrentSceneName = name
 
     def GetScene(self, name=None):
         if name == None:

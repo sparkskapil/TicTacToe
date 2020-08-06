@@ -1,7 +1,17 @@
+'''
+Module contains all components supported by engine
+'''
 import math
 
 
 class Vector:
+    # pylint: disable=invalid-name
+    """
+    Represents vectors in maths/physics.
+    Vectors are used to represent quantity which have
+    magnitude and direction
+    """
+
     def __init__(self, x=0, y=0, z=0):
         if isinstance(x, Vector):
             self.x = x.x
@@ -19,37 +29,109 @@ class Vector:
             self.z = z
 
     def Add(self, vector):
+        """
+        Returns a vector with addition of the 2 operating vectors.
+
+        Parameters:
+        vector (Vector) : Vector to be added.
+
+        Returns:
+        Vector : New vector with addition of the 2 operating vectors.
+
+        Raises:
+        TypeError: If type of vector parameter is not Vector.
+        """
         if not isinstance(vector, Vector):
             raise TypeError('Require vector to perform vector addition')
         return Vector(self.x + vector.x, self.y + vector.y, self.z + vector.z)
 
     def Subtract(self, vector):
+        """
+        Returns a vector with difference of the 2 operating vectors.
+
+        Parameters:
+        vector (Vector) : Vector to be subtracted.
+
+        Returns:
+        Vector : New vector with difference of the 2 operating vectors.
+
+        Raises:
+        TypeError: If type of vector parameter is not Vector.
+        """
         if not isinstance(vector, Vector):
             raise TypeError('Require vector to perform vector subtraction')
         return Vector(self.x - vector.x, self.y - vector.y, self.z - vector.z)
 
     def Mult(self, scalar):
-        if not isinstance(n, int) and isinstance(n, float):
+        """
+        Returns a vector with product of the vector with scalar.
+        This operation scales the magnitude of the operation vector.
+
+        Parameters:
+        scalar (int or float) : Vector to be subtracted.
+
+        Returns:
+        Vector : New vector with product of the vector with scalar.
+
+        Raises:
+        TypeError: If type of `scalar` parameter is not of type `int` or `float`.
+        """
+        if not isinstance(scalar, int) and isinstance(scalar, float):
             raise TypeError('Require scalar to perform scalar multiplication')
         return Vector(self.x*scalar, self.y*scalar, self.z*scalar)
 
     def Dot(self, vector):
+        """
+        Returns a scalar value for dot product of the 2 operating vectors.
+
+        Parameters:
+        vector (Vector) : Vector to perform dot product with.
+
+        Returns:
+        float : Scalar representing dot product 2 operating vectors.
+
+        Raises:
+        TypeError: If type of vector parameter is not Vector.
+        """
         if not isinstance(vector, Vector):
             raise TypeError('Require vector to perform dot product')
         return self.x * vector.x + self.y * vector.y + self.z * vector.z
 
     def Cross(self, vector):
+        """
+        Returns a Vector resulting from cross product of the 2 operating vectors.
+
+        Parameters:
+        vector (Vector) : Vector to perform cross product with.
+
+        Returns:
+        Vector : New vector with cross product of the 2 operating vectors.
+
+        Raises:
+        TypeError: If type of vector parameter is not Vector.
+        """
         if not isinstance(vector, Vector):
-            raise TypeError('Require vector to perform dot product')
+            raise TypeError('Require vector to perform cross product')
         I = self.y * vector.z - self.z * vector.y
         J = - self.x * vector.z - self.z * vector.x
         K = self.x * vector.y - self.y * vector.x
         return Vector(I, J, K)
 
     def Magnitude(self):
+        """
+        Returns magnitude of this vector.
+        Returns:
+        float : Magnitude of this vector.
+        """
         return math.sqrt(self.x**2 + self.y**2 + self.z**2)
 
     def Normalize(self):
+        """
+        Returns a unit vector along the direction of this vector.
+        Magnitude of a normalized vector will always be 1.
+        Returns:
+        Vector : New unit vector along the direction of this vector.
+        """
         magnitude = self.Magnitude()
         return Vector(self.x/magnitude, self.y/magnitude, self.z/magnitude)
 

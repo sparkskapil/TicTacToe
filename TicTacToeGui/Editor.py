@@ -9,7 +9,7 @@ from SceneManager import SceneManager
 
 from Scene import TicTacToeGame
 from ECS.Components import Vector, TransformComponent, TagComponent, LabelComponent
-from ECS.Components import Vector, SpriteComponent
+from ECS.Components import Vector, SpriteComponent, ButtonComponent, ScriptComponent
 
 
 class Editor:
@@ -120,13 +120,13 @@ class Editor:
 
         width = component.width
         changed, width = imgui.drag_int(
-            "WIDTH", width, 1, -self.WindowSize[0], self.WindowSize[1])
+            "WIDTH", width, 1, 0, self.WindowSize[0])
         if changed:
             component.width = width
 
         height = component.height
         changed, height = imgui.drag_int(
-            "HEIGHT", height, 1, -self.WindowSize[0], self.WindowSize[1])
+            "HEIGHT", height, 1, 0, self.WindowSize[1])
         if changed:
             component.height = height
 
@@ -138,6 +138,46 @@ class Editor:
         #     imgui.selectable("Two")
         #     imgui.selectable("Three")
         #     imgui.end_popup()
+
+    def __imguiDrawButtonComponent(self, component):
+        action = component.action
+        changed, action = imgui.input_text(
+            "ONCLICK", component.GetActionName(), 256, imgui.INPUT_TEXT_READ_ONLY)
+        # if changed:
+        #     component.action = action
+
+        width = component.width
+        changed, width = imgui.drag_int(
+            "WIDTH", width, 1, 0, self.WindowSize[0])
+        if changed:
+            component.width = width
+
+        height = component.height
+        changed, height = imgui.drag_int(
+            "HEIGHT", height, 1, 0, self.WindowSize[1])
+        if changed:
+            component.height = height
+
+        enabled = component.enabled
+        imgui.text("ENABLED")
+        if imgui.radio_button("True", enabled):
+            enabled = True
+        imgui.same_line()
+        if imgui.radio_button("False", not enabled):
+            enabled = False
+        component.enabled = enabled
+        imgui.same_line()
+
+    def __imguiDrawScriptComponent(self, component):
+        module = component.Module.__name__
+        changed, module = imgui.input_text(
+            "MODULE", module, len(module)+1, imgui.INPUT_TEXT_READ_ONLY)
+        # if changed:
+        #     component.action = action
+
+        scriptClass = component.ScriptClass.__name__
+        changed, scriptClass = imgui.input_text(
+            "CLASS", scriptClass, len(scriptClass)+1, imgui.INPUT_TEXT_READ_ONLY)
 
     def __imguiDrawComponent(self, component):
         compName = component.__class__.__name__
@@ -154,6 +194,12 @@ class Editor:
 
             elif isinstance(component, SpriteComponent):
                 self.__imguiDrawSpriteComponent(component)
+
+            elif isinstance(component, ButtonComponent):
+                self.__imguiDrawButtonComponent(component)
+
+            elif isinstance(component, ScriptComponent):
+                self.__imguiDrawScriptComponent(component)
 
             else:
                 imgui.text(component.__repr__())
@@ -177,10 +223,10 @@ class Editor:
         # words = textFont.render(
         #     "Count: " + str(pygame.time.get_ticks()), True, BUTTER)
         # self.offscreenSurface.blit(words, (150, 250))
-        if self.GameMode:
-            self.SceneMangaer.Update()
-
-        self.SceneMangaer.Render()
+        if self.SceneMangaer.HasScene():
+            if self.GameMode:
+                self.SceneMangaer.Update()
+            self.SceneMangaer.Render()
 
     def OnImGuiRender(self):
         self.OnApplicationResize()
@@ -283,72 +329,6 @@ class Editor:
             self.OnImGuiRender()
             pygame.display.flip()
         pygame.quit()
-
-
-'''
- def main():
-    pygame.init()
-    size = 800, 600
-    pygame.display.set_mode(
-        size, pygame.DOUBLEBUF | pygame.OPENGL | pygame.RESIZABLE)
-    pygame.display.init()
-    info = pygame.display.Info()
-
-    imgui.create_context()
-    impl = PygameRenderer()
-
-    io = imgui.get_io()
-    io.display_size = size
-
-    SDL_Maximize()
-    while 1:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                sys.exit()
-
-            impl.process_event(event)
-
-        imgui.new_frame()
-
-        if imgui.begin_main_menu_bar():
-            if imgui.begin_menu("File", True):
-
-                clicked_quit, selected_quit = imgui.menu_item(
-                    "Quit", 'Cmd+Q', False, True
-                )
-
-                if clicked_quit:
-                    exit(1)
-
-                imgui.end_menu()
-            imgui.end_main_menu_bar()
-
-        offscreenSurface = pygame.Surface((info.current_w, info.current_h))
-        # colours
-        MIDNIGHT = (15, 0, 100)
-        BUTTER = (255, 245, 100)
-        textFont = pygame.font.Font(None, 30)  # some default font
-        words = textFont.render(
-            "Count: " + str(pygame.time.get_ticks()), True, BUTTER)
-        offscreenSurface.fill(MIDNIGHT)
-        offscreenSurface.blit(words, (150, 250))
-        tex, w, h = surfaceToTexture(offscreenSurface)
-
-        imgui.begin("Viewport", True)
-        imgui.text("Bar")
-        imgui.image(tex, w, h)
-        imgui.end()
-        # note: cannot use screen.fill((1, 1, 1)) because pygame's screen
-        #       does not support fill() on OpenGL sufraces
-        gl.glClearColor(1, 1, 1, 1)
-        gl.glClear(gl.GL_COLOR_BUFFER_BIT)
-        imgui.render()
-        impl.render(imgui.get_draw_data())
-
-        pygame.display.flip()
-
-        gl.glDeleteTextures([tex])
-'''
 
 
 def main():

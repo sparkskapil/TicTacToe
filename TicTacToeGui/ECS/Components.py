@@ -2,7 +2,7 @@
 Module contains all components supported by engine
 '''
 import math
-
+import inspect
 
 class Vector:
     # pylint: disable=invalid-name
@@ -201,11 +201,14 @@ class ButtonComponent:
         self.height = height
         self.enabled = enabled
 
-    def __repr__(self):
-        import inspect
+    def GetActionName(self):
         action = self.action.__name__
         if action == "<lambda>":
             action = inspect.getsource(self.action).split("lambda:")[1].strip()
+        return action
+
+    def __repr__(self):
+        action = self.GetActionName()
         return "[ButtonComponent]\nAction: {} \nWidth: {} \nHeight: {} \nEnabled: {}".format(action, self.width, self.height, self.enabled)
 
 

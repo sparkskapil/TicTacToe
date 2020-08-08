@@ -5,6 +5,9 @@ class SceneManager:
         self.Surface = None
         self.CurrentSceneName = ""
 
+    def HasScene(self):
+        return not self.CurrentScene is None
+
     def AddScene(self, name, scene):
         self.Scenes[name] = scene
         if self.CurrentScene == None:

@@ -176,7 +176,6 @@ class SpriteComponent:
         self.width = width
         self.height = height
         self.mode = mode
-        self.Image = None
 
     def __repr__(self):
         return '[SpriteComponent]\nImage: {}\nWidth: {}\nHeight:{}\n'.format(self.image, self.width, self.height)
@@ -216,7 +215,6 @@ class ScriptComponent:
     def __init__(self, module, classname):
         self.Module = __import__(module)
         self.ScriptClass = getattr(self.Module, classname)
-        self.ScriptInstance = None
 
     def __repr__(self):
         return "[ScriptComponent]\nModule: {} \nClass: {}".format(self.Module.__name__, self.ScriptClass.__name__)

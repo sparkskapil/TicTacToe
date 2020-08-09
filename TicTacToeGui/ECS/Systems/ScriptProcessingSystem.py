@@ -11,7 +11,9 @@ class ScriptProcessingSystem:
 
     def __initializeScriptInstance(self, script, entity):
         if not script in self.Cache.keys() :
-            instance = script.ScriptClass(self.scene, entity)
+            module = __import__(script.Module)
+            scriptClass = getattr(module, script.Class)
+            instance = scriptClass(self.scene, entity)
             instance.Setup()
             self.Cache[script] = instance
 

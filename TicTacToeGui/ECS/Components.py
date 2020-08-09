@@ -213,11 +213,11 @@ class ButtonComponent:
 
 class ScriptComponent:
     def __init__(self, module, classname):
-        self.Module = __import__(module)
-        self.ScriptClass = getattr(self.Module, classname)
+        self.Module = module
+        self.Class = classname
 
     def __repr__(self):
-        return "[ScriptComponent]\nModule: {} \nClass: {}".format(self.Module.__name__, self.ScriptClass.__name__)
+        return "[ScriptComponent]\nModule: {} \nClass: {}".format(self.Module, self.Class)
 
 
 if __name__ == "__main__":

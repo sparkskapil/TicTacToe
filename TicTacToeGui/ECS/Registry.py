@@ -1,20 +1,20 @@
 import inspect
 
 
-def isclass(object):
+def isclass(obj):
     """Return true if the object is a class.
 
     Class objects provide these attributes:
         __doc__         documentation string
         __module__      name of module in which this class was defined"""
-    return inspect.isclass(object)
+    return inspect.isclass(obj)
 
 
-def GetTypeName(object):
-    if isclass(object):
-        return object.__name__
+def GetTypeName(obj):
+    if isclass(obj):
+        return obj.__name__
     else:
-        return object.__class__.__name__
+        return obj.__class__.__name__
 
 
 class Registry:
@@ -52,11 +52,15 @@ class Registry:
 
     def GetComponentsByType(self, typename):
         Type = GetTypeName(typename)
-        return self.repository[Type]
+        if Type in self.repository.keys():
+            return self.repository[Type]
+        return list()
 
     def GetComponent(self, entity, typename):
         Type = GetTypeName(typename)
-        return self.components[entity][Type]
+        if entity in self.components.keys() and Type in self.components[entity].keys():
+            return self.components[entity][Type]
+        return None
 
     def GetComponentsGroup(self, entity):
         self.componentsGroup = self.components[entity]

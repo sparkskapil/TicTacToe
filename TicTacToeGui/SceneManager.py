@@ -20,7 +20,7 @@ class SceneManager:
         self.CurrentSceneName = name
 
     def GetScene(self, name=None):
-        if name == None:
+        if name is None:
             return self.CurrentScene
         else:
             return self.Scenes[name]

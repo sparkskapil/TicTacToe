@@ -37,8 +37,8 @@ class TicTacToeGame(Scene):
 
         box1 = self.CreateEntity()
         box1.AddComponent(TransformComponent((70, 70, 0)))
-        box1.AddComponent(ButtonComponent(
-            100, 100, lambda: print('Button Clicked')))
+        # box1.AddComponent(ButtonComponent(
+        #     100, 100, lambda: print('Button Clicked')))
 
         box2 = self.CreateEntity()
         box2.AddComponent(TransformComponent((190, 70, 0)))

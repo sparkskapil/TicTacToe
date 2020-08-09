@@ -10,6 +10,7 @@ from SceneManager import SceneManager
 from Scene import TicTacToeGame
 from ECS.Components import Vector, TransformComponent, TagComponent, LabelComponent
 from ECS.Components import Vector, SpriteComponent, ButtonComponent, ScriptComponent
+from ECS.Scene import Scene
 
 
 class Editor:
@@ -169,13 +170,13 @@ class Editor:
         imgui.same_line()
 
     def __imguiDrawScriptComponent(self, component):
-        module = component.Module.__name__
+        module = component.Module
         changed, module = imgui.input_text(
             "MODULE", module, len(module)+1, imgui.INPUT_TEXT_READ_ONLY)
         # if changed:
         #     component.action = action
 
-        scriptClass = component.ScriptClass.__name__
+        scriptClass = component.Class
         changed, scriptClass = imgui.input_text(
             "CLASS", scriptClass, len(scriptClass)+1, imgui.INPUT_TEXT_READ_ONLY)
 
@@ -204,6 +205,14 @@ class Editor:
             else:
                 imgui.text(component.__repr__())
                 imgui.text("\n")
+
+    def __imguiSaveFile(self):
+        # TODO Add a save file dialog to get filepath.
+        if not self.SceneMangaer.HasScene():
+            return None
+        filepath = self.SceneMangaer.CurrentSceneName + '.hcs'
+
+        self.SceneMangaer.CurrentScene.SaveScene(filepath)
 
     def OnEvent(self):
         for event in pygame.event.get():
@@ -235,11 +244,18 @@ class Editor:
         menubarHeight = 0
         if imgui.begin_main_menu_bar():
             if imgui.begin_menu("File", True):
+                clicked_save, selected_save = imgui.menu_item(
+                    "Save", 'Cmd+S', False, self.SceneMangaer.HasScene()
+                )
+                if clicked_save:
+                    self.__imguiSaveFile()
+
                 clicked_quit, selected_quit = imgui.menu_item(
                     "Quit", 'Cmd+Q', False, True
                 )
                 if clicked_quit:
                     self.Running = False
+
                 imgui.end_menu()
             if imgui.begin_menu("Game", True):
                 clicked_run, selected_quit = imgui.menu_item(
@@ -273,16 +289,18 @@ class Editor:
         imgui.begin("Scene Hierarchy", False, windowFlags)
 
         if imgui.tree_node("Scene [{}]".format(self.SceneMangaer.CurrentSceneName)):
-            for entId in self.SceneMangaer.GetScene().Entities.keys():
-                if not entId in self.selected:
-                    self.selected[entId] = False
-                if not self.SelectedEntity == None and entId == self.SelectedEntity.entity:
-                    imgui.unindent(20)
-                    imgui.bullet()
-                    imgui.indent(20)
-                _, currentlySelected = imgui.selectable(
-                    "Entity {}".format(entId), self.selected[entId])
-                self.selected[entId] = not currentlySelected == self.selected[entId]
+            scene = self.SceneMangaer.GetScene()
+            if not scene is None: 
+                for entId in scene.Entities.keys():
+                    if not entId in self.selected:
+                        self.selected[entId] = False
+                    if not self.SelectedEntity == None and entId == self.SelectedEntity.entity:
+                        imgui.unindent(20)
+                        imgui.bullet()
+                        imgui.indent(20)
+                    _, currentlySelected = imgui.selectable(
+                        "Entity {}".format(entId), self.selected[entId])
+                    self.selected[entId] = not currentlySelected == self.selected[entId]
             imgui.tree_pop()
         imgui.end()
 
@@ -335,6 +353,9 @@ def main():
     editor = Editor()
     editor.updateViewPortSize(500, 500)
     editor.SceneMangaer.AddScene("MainScene", TicTacToeGame())
+    # scene = Scene()
+    # scene.LoadScene("MainScene.hcs")
+    # editor.SceneMangaer.AddScene("MainScene", scene)
     editor.Run()
 
 

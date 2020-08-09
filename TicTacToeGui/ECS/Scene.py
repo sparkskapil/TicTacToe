@@ -1,9 +1,13 @@
+import pickle
+import json
+
 from ECS.Registry import Registry
 from ECS.Entity import Entity
 from ECS.Systems.SpriteRendererSystem import SpriteRenderSystem
 from ECS.Systems.InputProcessingSystem import InputProcessingSystem
 from ECS.Systems.ScriptProcessingSystem import ScriptProcessingSystem
 from ECS.Systems.LabelRenderingSystem import LabelRenderingSystem
+
 
 
 class Scene:
@@ -58,3 +62,27 @@ class Scene:
         '''
         To be overridden by the derrived class
         '''
+
+    def SaveScene(self, filepath, binary=False):
+        if not binary:
+            #TODO Add mechanism to store scene in ascii
+            pass
+        state = dict()
+        for entId, entity in self.Entities:
+            if not entId in state:
+                state[entId] = list()
+            state[entId].extend(entity.GetComponents())
+
+        with open(filepath, 'wb') as file:
+            pickle.dump(state, file)
+
+    def LoadScene(self, filepath, binary=False):
+        if not binary:
+            #TODO Add mechanism to read scene in ascii
+            pass
+        with open(filepath, 'rb') as file:
+            scene = pickle.load(file)
+            for index in scene.keys():
+                entt = self.CreateEntity()
+                for component in scene[index]:
+                    entt.AddComponent(component)

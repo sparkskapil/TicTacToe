@@ -53,7 +53,7 @@ class Editor:
         self.updateViewPortSize(size[0], size[1])
         self.Running = True
         self.SelectedEntity = None
-        self.selected = dict()
+        self.selected = -1
         self.ScenePosition = (0, 0)
         self.GameMode = False
 
@@ -292,24 +292,16 @@ class Editor:
             scene = self.SceneMangaer.GetScene()
             if not scene is None: 
                 for entId in scene.Entities.keys():
-                    if not entId in self.selected:
-                        self.selected[entId] = False
-                    if not self.SelectedEntity == None and entId == self.SelectedEntity.entity:
-                        imgui.unindent(20)
-                        imgui.bullet()
-                        imgui.indent(20)
                     _, currentlySelected = imgui.selectable(
-                        "Entity {}".format(entId), self.selected[entId])
-                    self.selected[entId] = not currentlySelected == self.selected[entId]
+                        "Entity {}".format(entId), self.selected == entId)
+                    if currentlySelected:
+                        self.selected = entId 
             imgui.tree_pop()
         imgui.end()
 
-        for entId in self.selected.keys():
-            if self.selected[entId]:
-                self.SelectedEntity = self.SceneMangaer.GetScene(
-                ).Entities[entId]
-            else:
-                self.selected[entId] = False
+        entId = self.selected
+        if not entId == -1:
+            self.SelectedEntity = self.SceneMangaer.GetScene().Entities[entId]
 
         # Draw ViewPort
         imgui.set_next_window_position(Width*0.25, YOffset)
@@ -333,6 +325,8 @@ class Editor:
             for component in self.SelectedEntity.GetComponents():
                 self.__imguiDrawComponent(component)
         imgui.end()
+        
+        #imgui.show_demo_window()
 
         gl.glClearColor(1, 1, 1, 1)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT)

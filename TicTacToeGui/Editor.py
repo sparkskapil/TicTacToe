@@ -132,15 +132,25 @@ class Editor:
             "HEIGHT", height, 1, 0, self.WindowSize[1])
         if changed:
             component.height = height
-
-        # mode = component.mode
-        # if imgui.begin_popup("select-popup"):
-        #     imgui.text("Select one")
-        #     imgui.separator()
-        #     imgui.selectable("One")
-        #     imgui.selectable("Two")
-        #     imgui.selectable("Three")
-        #     imgui.end_popup()
+        modesMap = {1: "Original", 2: "Fit", 3: "RespectAspect"}
+        if imgui.button("Select Sprite Mode"):
+            imgui.open_popup("Sprite Mode")
+        imgui.same_line()
+        imgui.text(modesMap[component.mode])
+        if imgui.begin_popup("Sprite Mode"):
+            _, selected = imgui.selectable(
+                "Original", component.mode == SpriteComponent.SpriteMode.Original)
+            if selected:
+                component.mode = SpriteComponent.SpriteMode.Original
+            _, selected = imgui.selectable(
+                "Fit", component.mode == SpriteComponent.SpriteMode.Fit)
+            if selected:
+                component.mode = SpriteComponent.SpriteMode.Fit
+            _, selected = imgui.selectable(
+                "RespectAspect", component.mode == SpriteComponent.SpriteMode.RespectAspect)
+            if selected:
+                component.mode = SpriteComponent.SpriteMode.RespectAspect
+            imgui.end_popup()
 
     def __imguiDrawButtonComponent(self, component):
         action = component.action
@@ -229,11 +239,6 @@ class Editor:
                     self.__modifyEventRelativeToScene(event))
 
     def OnRender(self):
-        # BUTTER = (255, 245, 100)
-        # textFont = pygame.font.Font(None, 30)  # some default font
-        # words = textFont.render(
-        #     "Count: " + str(pygame.time.get_ticks()), True, BUTTER)
-        # self.offscreenSurface.blit(words, (150, 250))
         if self.SceneMangaer.HasScene():
             if self.BoundsRenderer is None:
                 self.SelectionRenderer = BoundsComputingSystem(
@@ -241,7 +246,7 @@ class Editor:
             if self.GameMode:
                 self.SceneMangaer.Update()
             self.SceneMangaer.Render()
-            
+
             # Selection should be rendered after the scene is rendered
             if not self.GameMode and not self.SelectedEntity is None:
                 self.SelectionRenderer.DrawRectForEntity(self.SelectedEntity)
@@ -334,8 +339,6 @@ class Editor:
             for component in self.SelectedEntity.GetComponents():
                 self.__imguiDrawComponent(component)
         imgui.end()
-
-        # imgui.show_demo_window()
 
         gl.glClearColor(1, 1, 1, 1)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT)

@@ -53,7 +53,7 @@ class Grid:
         self.grid = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
 
     def SetCell(self, row, col, symbol):
-        if symbol == None:
+        if symbol is None:
             raise ValueError('Symbol is required to set value in the cell')
         if self.grid[row][col] == 0:
             self.grid[row][col] = symbol
@@ -213,7 +213,7 @@ class NetworkPlayer:
     def __init__(self, server, port, symbol=None):
         self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connection.connect((server, port))
-        if symbol == None:
+        if symbol is None:
             # Get Symbol for the player
             msg = self.connection.recv(1024)
             self.symbol = msg.decode('utf-8')
@@ -276,7 +276,7 @@ class Game:
         return self.Finished
 
     def IsTied(self):
-        return self.Winner == None and self.Finished
+        return self.Winner is None and self.Finished
 
     def GetWinner(self):
         return self.Winner.symbol
@@ -331,7 +331,7 @@ class Game:
 
         # Declare Game Result
         self.DrawGrid()
-        if self.Winner == None:
+        if self.Winner is None:
             print('Game Tied !!!')
 
         else:

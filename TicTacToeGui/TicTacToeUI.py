@@ -34,9 +34,9 @@ class Sprite(Layer):
 
     def Setup(self):
         # Fit sprite to Screen
-        if self.MaxWidth == None:
+        if self.MaxWidth is None:
             self.MaxWidth = self.Width
-        if self.MaxHeight == None:
+        if self.MaxHeight is None:
             self.MaxHeight = self.Height
 
         self.image = pygame.image.load(self.Image)
@@ -172,7 +172,7 @@ class Application:
         pygame.init()
         self.screen = pygame.display.set_mode([self.Width, self.Height])
         pygame.display.set_caption(self.Title)
-        if not Icon == None:
+        if not Icon is None:
             gameIcon = pygame.image.load(Icon)
             pygame.display.set_icon(gameIcon)
 

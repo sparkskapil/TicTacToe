@@ -15,16 +15,16 @@ class SpriteRenderSystem:
             sprite.width = self.Surface.get_width()
             sprite.height = self.Surface.get_height()
         elif sprite.mode == SpriteComponent.SpriteMode.RespectAspect:
-            if sprite.width == None:
+            if sprite.width is None:
                 sprite.width = int(imW*sprite.height / imH)
-            elif sprite.height == None:
+            elif sprite.height is None:
                 sprite.height = int(imH*sprite.width / imW)
         elif sprite.mode == SpriteComponent.SpriteMode.Original:
             sprite.width = imW
             sprite.height = imH
 
     def __transformSprite(self, sprite):
-        if sprite.width == sprite.height == None and sprite.mode == SpriteComponent.SpriteMode.RespectAspect:
+        if sprite.width == sprite.height is None and sprite.mode == SpriteComponent.SpriteMode.RespectAspect:
             sprite.mode = SpriteComponent.SpriteMode.Original
 
         # scale image if width and height not defined.

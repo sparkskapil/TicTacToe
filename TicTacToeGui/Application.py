@@ -13,7 +13,7 @@ class Application:
         self.screen = pygame.display.set_mode([self.Width, self.Height])
         self.SceneManager.SetSurface(self.screen)
         pygame.display.set_caption(self.Title)
-        if not Icon == None:
+        if not Icon is None:
             gameIcon = pygame.image.load(Icon)
             pygame.display.set_icon(gameIcon)
 

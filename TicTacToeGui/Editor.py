@@ -105,7 +105,7 @@ class Editor:
 
         background = tuple(
             map(lambda x: x/255, (0, 0, 0, 255)))  # (0, 0, 0, 1)
-        if not component.background == None:
+        if not component.background is None:
             # component.background
             background = tuple(map(lambda x: x/255, component.background))
         changed, background = imgui.color_edit4("BG COLOR", *background)
@@ -320,7 +320,7 @@ class Editor:
         imgui.set_next_window_position(Width*0.75, YOffset)
         imgui.set_next_window_size(Width*0.25, Height)
         imgui.begin("Inspector", False, windowFlags)
-        if not self.SelectedEntity == None:
+        if not self.SelectedEntity is None:
             imgui.text("Entity {}".format(self.SelectedEntity.entity))
             for component in self.SelectedEntity.GetComponents():
                 self.__imguiDrawComponent(component)

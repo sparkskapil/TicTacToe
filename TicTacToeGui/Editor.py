@@ -11,6 +11,7 @@ from Scene import TicTacToeGame
 from ECS.Components import Vector, TransformComponent, TagComponent, LabelComponent
 from ECS.Components import Vector, SpriteComponent, ButtonComponent, ScriptComponent
 from ECS.Scene import Scene
+from ECS.Systems.BoundsComputingSystem import BoundsComputingSystem
 
 
 class Editor:
@@ -50,6 +51,7 @@ class Editor:
 
         self.SetupImGUI(size)
         self.SceneMangaer = SceneManager()
+        self.BoundsRenderer = None
         self.updateViewPortSize(size[0], size[1])
         self.Running = True
         self.SelectedEntity = None
@@ -233,9 +235,16 @@ class Editor:
         #     "Count: " + str(pygame.time.get_ticks()), True, BUTTER)
         # self.offscreenSurface.blit(words, (150, 250))
         if self.SceneMangaer.HasScene():
+            if self.BoundsRenderer is None:
+                self.SelectionRenderer = BoundsComputingSystem(
+                    self.SceneMangaer.CurrentScene, self.offscreenSurface)
             if self.GameMode:
                 self.SceneMangaer.Update()
             self.SceneMangaer.Render()
+            
+            # Selection should be rendered after the scene is rendered
+            if not self.GameMode and not self.SelectedEntity is None:
+                self.SelectionRenderer.DrawRectForEntity(self.SelectedEntity)
 
     def OnImGuiRender(self):
         self.OnApplicationResize()
@@ -290,12 +299,12 @@ class Editor:
 
         if imgui.tree_node("Scene [{}]".format(self.SceneMangaer.CurrentSceneName)):
             scene = self.SceneMangaer.GetScene()
-            if not scene is None: 
+            if not scene is None:
                 for entId in scene.Entities.keys():
                     _, currentlySelected = imgui.selectable(
                         "Entity {}".format(entId), self.selected == entId)
                     if currentlySelected:
-                        self.selected = entId 
+                        self.selected = entId
             imgui.tree_pop()
         imgui.end()
 
@@ -325,8 +334,8 @@ class Editor:
             for component in self.SelectedEntity.GetComponents():
                 self.__imguiDrawComponent(component)
         imgui.end()
-        
-        #imgui.show_demo_window()
+
+        # imgui.show_demo_window()
 
         gl.glClearColor(1, 1, 1, 1)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT)

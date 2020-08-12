@@ -13,7 +13,7 @@ from ECS.Components import Vector, SpriteComponent, ButtonComponent, ScriptCompo
 from ECS.Scene import Scene
 from ECS.Systems.BoundsComputingSystem import BoundsComputingSystem
 
-from ImGuiCustomControls import OpenFileDialog
+from ImGuiCustomControls import OpenFileDialog, MessageBox
 
 
 class Editor:
@@ -230,7 +230,7 @@ class Editor:
         self.SceneMangaer.CurrentScene.SaveScene(filepath)
 
     def __onOpenFile(self, file):
-        print(file) 
+        print(file)
 
     def OnEvent(self):
         for event in pygame.event.get():
@@ -301,12 +301,10 @@ class Editor:
 
         if openFileDialogState:
             OpenFileDialog.ShowDialog(self.__onOpenFile)
-            imgui.set_next_window_size(500,100)
-            
+
         openFileDialogState = False
         OpenFileDialog.DrawDialog()
-        
-        
+
         # Create texture from Pygame Surface
         if hasattr(self, "Texture"):
             GLHelpers.DeleteTexture(self.Texture)

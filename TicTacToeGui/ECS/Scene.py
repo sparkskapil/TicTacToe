@@ -68,7 +68,7 @@ class Scene:
             #TODO Add mechanism to store scene in ascii
             pass
         state = dict()
-        for entId, entity in self.Entities:
+        for entId, entity in self.Entities.items():
             if not entId in state:
                 state[entId] = list()
             state[entId].extend(entity.GetComponents())
@@ -82,7 +82,7 @@ class Scene:
             pass
         with open(filepath, 'rb') as file:
             scene = pickle.load(file)
-            for index in scene.keys():
+            for _, components in scene.items():
                 entt = self.CreateEntity()
-                for component in scene[index]:
+                for component in components:
                     entt.AddComponent(component)

@@ -13,6 +13,8 @@ from ECS.Components import Vector, SpriteComponent, ButtonComponent, ScriptCompo
 from ECS.Scene import Scene
 from ECS.Systems.BoundsComputingSystem import BoundsComputingSystem
 
+from ImGuiCustomControls import OpenFileDialog
+
 
 class Editor:
     def SetupImGUI(self, size=(800, 600)):
@@ -58,6 +60,7 @@ class Editor:
         self.selected = -1
         self.ScenePosition = (0, 0)
         self.GameMode = False
+        self.File = None
 
     def __modifyEventRelativeToScene(self, event):
         x, y = self.ScenePosition
@@ -226,6 +229,9 @@ class Editor:
 
         self.SceneMangaer.CurrentScene.SaveScene(filepath)
 
+    def __onOpenFile(self, file):
+        print(file) 
+
     def OnEvent(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -256,8 +262,15 @@ class Editor:
         imgui.new_frame()
         menubarWidth = 0
         menubarHeight = 0
+        openFileDialogState = False
         if imgui.begin_main_menu_bar():
             if imgui.begin_menu("File", True):
+
+                clicked_open, selected_open = imgui.menu_item(
+                    "Open", 'Cmd+O', False)
+                if clicked_open:
+                    openFileDialogState = True
+
                 clicked_save, selected_save = imgui.menu_item(
                     "Save", 'Cmd+S', False, self.SceneMangaer.HasScene()
                 )
@@ -285,6 +298,15 @@ class Editor:
                 imgui.end_menu()
             menubarWidth, menubarHeight = imgui.get_item_rect_size()
             imgui.end_main_menu_bar()
+
+        if openFileDialogState:
+            OpenFileDialog.ShowDialog(self.__onOpenFile)
+            imgui.set_next_window_size(500,100)
+            
+        openFileDialogState = False
+        OpenFileDialog.DrawDialog()
+        
+        
         # Create texture from Pygame Surface
         if hasattr(self, "Texture"):
             GLHelpers.DeleteTexture(self.Texture)

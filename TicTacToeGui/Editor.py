@@ -50,6 +50,8 @@ class Editor:
         pygame.display.init()
         SDL_Maximize()
         info = pygame.display.Info()
+        
+        self.Clock = clock = pygame.time.Clock()
 
         self.SetupImGUI(size)
         self.SceneMangaer = SceneManager()
@@ -267,18 +269,18 @@ class Editor:
             if imgui.begin_menu("File", True):
 
                 clicked_open, selected_open = imgui.menu_item(
-                    "Open", 'Cmd+O', False)
+                    "Open", 'Ctrl+O', False)
                 if clicked_open:
                     openFileDialogState = True
 
                 clicked_save, selected_save = imgui.menu_item(
-                    "Save", 'Cmd+S', False, self.SceneMangaer.HasScene()
+                    "Save", 'Ctrl+S', False, self.SceneMangaer.HasScene()
                 )
                 if clicked_save:
                     self.__imguiSaveFile()
 
                 clicked_quit, selected_quit = imgui.menu_item(
-                    "Quit", 'Cmd+Q', False, True
+                    "Quit", 'Ctrl+Q', False, True
                 )
                 if clicked_quit:
                     self.Running = False
@@ -367,6 +369,7 @@ class Editor:
 
     def Run(self):
         while self.Running:
+            dt = self.Clock.tick(60)
             self.OnEvent()
             self.offscreenSurface.fill((51, 51, 51))
             self.OnRender()

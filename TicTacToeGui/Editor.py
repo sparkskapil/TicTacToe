@@ -228,7 +228,7 @@ class Editor:
         if not self.SceneMangaer.HasScene():
             return None
         if not FileSystem.GetFileExtension(file) == '.hsc':
-            file += ".hsc"
+            file += ".hcs"
         self.SceneMangaer.CurrentScene.SaveScene(file)
 
     def __onOpenFile(self, file):
@@ -308,7 +308,8 @@ class Editor:
         OpenFileDialog.DrawDialog()
 
         if saveFileDialogState:
-            SaveFileDialog.ShowDialog(self.__onSaveFile)
+            defaultFile = self.SceneMangaer.CurrentSceneName + ".hcs"
+            SaveFileDialog.ShowDialog(self.__onSaveFile, None, defaultFile)
         saveFileDialogState = False
         SaveFileDialog.DrawDialog()
 

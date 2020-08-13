@@ -56,6 +56,12 @@ class FileSystem:
     def GetFileExtension(filepath):
         return os.path.splitext(filepath)[1]
 
+    @staticmethod
+    def DeleteFile(filepath):
+        if not FileSystem.IsValidFile(filepath):
+            raise Exception("File does not exist in the directory")
+        os.remove(filepath)
+
 
 BUTTON_WIDTH = 50
 BUTTON_HEIGHT = 25
@@ -92,6 +98,49 @@ class MessageBox:
     def __disposeDialog():
         MessageBox.TITLE = "MESSAGE BOX"
         MessageBox.MESSAGE = ""
+        imgui.close_current_popup()
+
+
+class ConfirmationBox:
+    TITLE = "CONFIRMATION BOX"
+    MESSAGE = ""
+
+    @staticmethod
+    def DrawConfirmationBox():
+        selection = None
+        popupFlags = imgui.WINDOW_NO_SCROLLBAR | imgui.WINDOW_NO_RESIZE
+        if imgui.begin_popup_modal(ConfirmationBox.TITLE, None, popupFlags)[0] and not ConfirmationBox.MESSAGE == "":
+            imgui.text_wrapped(ConfirmationBox.MESSAGE)
+
+            offsetX = imgui.get_window_width() - BUTTON_WIDTH
+            imgui.set_cursor_pos_x(offsetX/2)
+
+            offsetY = imgui.get_window_height() - BUTTON_HEIGHT - 5
+            imgui.set_cursor_pos_y(offsetY)
+
+            if imgui.button("Yes", BUTTON_WIDTH, BUTTON_HEIGHT):
+                selection = True
+                ConfirmationBox.__disposeDialog()
+
+            imgui.same_line(spacing=30)
+
+            if imgui.button("No", BUTTON_WIDTH, BUTTON_HEIGHT):
+                selection = False
+                ConfirmationBox.__disposeDialog()
+            imgui.end_popup()
+        return selection
+
+    @staticmethod
+    def ShowConfirmationBox(title, message):
+        ConfirmationBox.TITLE = title
+        ConfirmationBox.MESSAGE = message
+        imgui.open_popup(ConfirmationBox.TITLE)
+        imgui.set_next_window_size(300, 150)
+
+    @staticmethod
+    def __disposeDialog():
+        ConfirmationBox.TITLE = "CONFIRMATION BOX"
+        ConfirmationBox.MESSAGE = ""
         imgui.close_current_popup()
 
 
@@ -194,14 +243,16 @@ class SaveFileDialog:
     OnSaveEvent = None
     OnCloseEvent = None
     InputControl = None
-
+    Confirm = False
+    Message = False
     @staticmethod
     def OnSave():
         filepath = SaveFileDialog.InputControl.Text
         parentDir = FileSystem.GetParentDirectory(filepath)
         if not FileSystem.IsValidDirectory(parentDir):
-            MessageBox.ShowMessageBox(
-                "FILE ERROR", "The path for file is invalid.")
+            SaveFileDialog.Message = True
+        if FileSystem.IsValidFile(filepath):
+            SaveFileDialog.Confirm = True
         else:
             SaveFileDialog.OnSaveEvent(filepath)
             SaveFileDialog.__disposeDialog()
@@ -218,14 +269,14 @@ class SaveFileDialog:
         imgui.close_current_popup()
 
     @staticmethod
-    def ShowDialog(onSave: callable, onClose: callable = None):
+    def ShowDialog(onSave: callable, onClose: callable = None, DefaultFile: str = ""):
         SaveFileDialog.OnSaveEvent = onSave
         SaveFileDialog.OnCloseEvent = onClose
 
         if SaveFileDialog.InputControl is None:
             SaveFileDialog.InputControl = InputTextControl(
                 "Filepath", ("SAVE", "CANCEL"))
-
+        SaveFileDialog.InputControl.Text = DefaultFile
         SaveFileDialog.InputControl.SetEvents(
             SaveFileDialog.OnSave, SaveFileDialog.OnClose)
 
@@ -237,5 +288,22 @@ class SaveFileDialog:
         popupFlags = imgui.WINDOW_NO_SCROLLBAR | imgui.WINDOW_NO_RESIZE
         if imgui.begin_popup_modal("Save File", None, popupFlags)[0]:
             SaveFileDialog.InputControl.DrawControl()
+
+            if SaveFileDialog.Message:
+                MessageBox.ShowMessageBox(
+                    "FILE ERROR", "The path for file is invalid.")
+            SaveFileDialog.Message = False
             MessageBox.DrawMessageBox()
+
+            if SaveFileDialog.Confirm:
+                msg = "The file with the same name already exist. Do you want to overwrite ?"
+                ConfirmationBox.ShowConfirmationBox("File Exists", msg)
+            SaveFileDialog.Confirm = False
+            selection = ConfirmationBox.DrawConfirmationBox()
+
+            if selection:
+                filepath = SaveFileDialog.InputControl.Text
+                FileSystem.DeleteFile(filepath)
+                imgui.close_current_popup()
+
             imgui.end_popup()

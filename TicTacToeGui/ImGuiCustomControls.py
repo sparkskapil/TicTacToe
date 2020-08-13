@@ -40,8 +40,21 @@ class FileSystem:
         return os.path.abspath(path)
 
     @staticmethod
+    def GetParentDirectory(path):
+        absPath = FileSystem.GetAbsolutePath(path)
+        return os.path.dirname(absPath)
+
+    @staticmethod
     def IsValidFile(path):
         return os.path.exists(path) and os.path.isfile(path)
+
+    @staticmethod
+    def IsValidDirectory(directory):
+        return os.path.exists(directory) and os.path.isdir(directory)
+
+    @staticmethod
+    def GetFileExtension(filepath):
+        return os.path.splitext(filepath)[1]
 
 
 BUTTON_WIDTH = 50
@@ -82,25 +95,86 @@ class MessageBox:
         imgui.close_current_popup()
 
 
+class InputTextControl:
+    def __init__(self, textLabel: str, btnLabels: tuple = None, btnEvents: tuple = None):
+        self.Text = ""
+        self.TextLabel = textLabel
+        self.Reset()
+        if btnEvents:
+            self.ButtonOneClickEvent = btnEvents[0]
+            self.ButtonTwoClickEvent = btnEvents[1]
+
+        if btnLabels:
+            self.ButtonOneLabel = btnLabels[0]
+            self.ButtonTwoLabel = btnLabels[1]
+
+    def Reset(self):
+        self.Text = ""
+        self.ButtonOneClickEvent = None
+        self.ButtonTwoClickEvent = None
+
+    def SetEvents(self, eventOne=None, eventTwo=None):
+        self.ButtonOneClickEvent = eventOne
+        self.ButtonTwoClickEvent = eventTwo
+
+    def DrawControl(self):
+        imgui.text(self.TextLabel)
+        imgui.push_item_width(-1)
+        _, self.Text = imgui.input_text("", self.Text, 256)
+        imgui.pop_item_width()
+
+        offset = imgui.get_window_width() - 2 * BUTTON_WIDTH - 20
+        imgui.set_cursor_pos_x(offset)
+
+        if imgui.button(self.ButtonOneLabel, BUTTON_WIDTH, BUTTON_HEIGHT):
+            if self.ButtonOneClickEvent:
+                self.ButtonOneClickEvent()
+
+        imgui.same_line()
+
+        if imgui.button(self.ButtonTwoLabel, BUTTON_WIDTH, BUTTON_HEIGHT):
+            if self.ButtonTwoClickEvent:
+                self.ButtonTwoClickEvent()
+
+
 class OpenFileDialog:
     """
-    Open file dialog static class.
+    Custom control handling Opening of a file.
     """
-    SelectedFile = ""
-    OnOpen = None
-    OnClose = None
+    OnOpenEvent = None
+    OnCloseEvent = None
+    InputControl = None
+
+    @staticmethod
+    def OnOpen():
+        filepath = OpenFileDialog.InputControl.Text
+        if not FileSystem.IsValidFile(filepath):
+            MessageBox.ShowMessageBox(
+                "FILE ERROR", "The path for file is invalid.")
+        else:
+            OpenFileDialog.OnOpenEvent(filepath)
+            OpenFileDialog.__disposeDialog()
+
+    @staticmethod
+    def OnClose():
+        if OpenFileDialog.OnCloseEvent:
+            OpenFileDialog.OnCloseEvent()
+        OpenFileDialog.__disposeDialog()
 
     @staticmethod
     def __disposeDialog():
-        OpenFileDialog.OnOpen = None
-        OpenFileDialog.OnClose = None
-        OpenFileDialog.SelectedFile = ""
+        OpenFileDialog.InputControl.Reset()
         imgui.close_current_popup()
 
     @staticmethod
     def ShowDialog(onOpen, onClose=None):
-        OpenFileDialog.OnOpen = onOpen
-        OpenFileDialog.OnClose = onClose
+        OpenFileDialog.OnOpenEvent = onOpen
+        OpenFileDialog.OnCloseEvent = onClose
+        if OpenFileDialog.InputControl is None:
+            OpenFileDialog.InputControl = InputTextControl(
+                "Filepath", ("OPEN", "CANCEL"))
+        OpenFileDialog.InputControl.SetEvents(
+            OpenFileDialog.OnOpen, OpenFileDialog.OnClose)
         imgui.open_popup("Open File")
         imgui.set_next_window_size(400, 100)
 
@@ -108,31 +182,60 @@ class OpenFileDialog:
     def DrawDialog():
         popupFlags = imgui.WINDOW_NO_SCROLLBAR | imgui.WINDOW_NO_RESIZE
         if imgui.begin_popup_modal("Open File", None, popupFlags)[0]:
+            OpenFileDialog.InputControl.DrawControl()
+            MessageBox.DrawMessageBox()
+            imgui.end_popup()
 
-            imgui.text("Filepath")
-            imgui.push_item_width(-1)
-            _, OpenFileDialog.SelectedFile = imgui.input_text(
-                "", OpenFileDialog.SelectedFile, 256)
-            imgui.pop_item_width()
 
-            offset = imgui.get_window_width() - 2 * BUTTON_WIDTH - 20
-            imgui.set_cursor_pos_x(offset)
-            
-            if imgui.button("Open", BUTTON_WIDTH, BUTTON_HEIGHT):
-                
-                if not FileSystem.IsValidFile(OpenFileDialog.SelectedFile):
-                    MessageBox.ShowMessageBox(
-                        "FILE ERROR", "The path for file is invalid.")
-                else:
-                    OpenFileDialog.OnOpen(OpenFileDialog.SelectedFile)
-                    OpenFileDialog.__disposeDialog()
+class SaveFileDialog:
+    """
+    Custom control handling Saving of a file.
+    """
+    OnSaveEvent = None
+    OnCloseEvent = None
+    InputControl = None
 
-            imgui.same_line()
+    @staticmethod
+    def OnSave():
+        filepath = SaveFileDialog.InputControl.Text
+        parentDir = FileSystem.GetParentDirectory(filepath)
+        if not FileSystem.IsValidDirectory(parentDir):
+            MessageBox.ShowMessageBox(
+                "FILE ERROR", "The path for file is invalid.")
+        else:
+            SaveFileDialog.OnSaveEvent(filepath)
+            SaveFileDialog.__disposeDialog()
 
-            if imgui.button("Close", BUTTON_WIDTH, BUTTON_HEIGHT):
-                if not OpenFileDialog.OnClose is None:
-                    OpenFileDialog.OnClose()
-                OpenFileDialog.__disposeDialog()
-            
+    @staticmethod
+    def OnClose():
+        if SaveFileDialog.OnCloseEvent:
+            SaveFileDialog.OnCloseEvent()
+        SaveFileDialog.__disposeDialog()
+
+    @staticmethod
+    def __disposeDialog():
+        SaveFileDialog.InputControl.Reset()
+        imgui.close_current_popup()
+
+    @staticmethod
+    def ShowDialog(onSave: callable, onClose: callable = None):
+        SaveFileDialog.OnSaveEvent = onSave
+        SaveFileDialog.OnCloseEvent = onClose
+
+        if SaveFileDialog.InputControl is None:
+            SaveFileDialog.InputControl = InputTextControl(
+                "Filepath", ("SAVE", "CANCEL"))
+
+        SaveFileDialog.InputControl.SetEvents(
+            SaveFileDialog.OnSave, SaveFileDialog.OnClose)
+
+        imgui.open_popup("Save File")
+        imgui.set_next_window_size(400, 100)
+
+    @staticmethod
+    def DrawDialog():
+        popupFlags = imgui.WINDOW_NO_SCROLLBAR | imgui.WINDOW_NO_RESIZE
+        if imgui.begin_popup_modal("Save File", None, popupFlags)[0]:
+            SaveFileDialog.InputControl.DrawControl()
             MessageBox.DrawMessageBox()
             imgui.end_popup()

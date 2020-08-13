@@ -13,7 +13,8 @@ from ECS.Components import Vector, SpriteComponent, ButtonComponent, ScriptCompo
 from ECS.Scene import Scene
 from ECS.Systems.BoundsComputingSystem import BoundsComputingSystem
 
-from ImGuiCustomControls import OpenFileDialog, MessageBox
+from ImGuiCustomControls import FileSystem
+from ImGuiCustomControls import OpenFileDialog, SaveFileDialog, MessageBox
 
 
 class Editor:
@@ -50,7 +51,7 @@ class Editor:
         pygame.display.init()
         SDL_Maximize()
         info = pygame.display.Info()
-        
+
         self.Clock = clock = pygame.time.Clock()
 
         self.SetupImGUI(size)
@@ -223,13 +224,12 @@ class Editor:
                 imgui.text(component.__repr__())
                 imgui.text("\n")
 
-    def __imguiSaveFile(self):
-        # TODO Add a save file dialog to get filepath.
+    def __onSaveFile(self, file):
         if not self.SceneMangaer.HasScene():
             return None
-        filepath = self.SceneMangaer.CurrentSceneName + '.hcs'
-
-        self.SceneMangaer.CurrentScene.SaveScene(filepath)
+        if not FileSystem.GetFileExtension(file) == '.hsc':
+            file += ".hsc"
+        self.SceneMangaer.CurrentScene.SaveScene(file)
 
     def __onOpenFile(self, file):
         print(file)
@@ -265,6 +265,7 @@ class Editor:
         menubarWidth = 0
         menubarHeight = 0
         openFileDialogState = False
+        saveFileDialogState = False
         if imgui.begin_main_menu_bar():
             if imgui.begin_menu("File", True):
 
@@ -277,7 +278,7 @@ class Editor:
                     "Save", 'Ctrl+S', False, self.SceneMangaer.HasScene()
                 )
                 if clicked_save:
-                    self.__imguiSaveFile()
+                    saveFileDialogState = True
 
                 clicked_quit, selected_quit = imgui.menu_item(
                     "Quit", 'Ctrl+Q', False, True
@@ -303,9 +304,13 @@ class Editor:
 
         if openFileDialogState:
             OpenFileDialog.ShowDialog(self.__onOpenFile)
-
         openFileDialogState = False
         OpenFileDialog.DrawDialog()
+
+        if saveFileDialogState:
+            SaveFileDialog.ShowDialog(self.__onSaveFile)
+        saveFileDialogState = False
+        SaveFileDialog.DrawDialog()
 
         # Create texture from Pygame Surface
         if hasattr(self, "Texture"):

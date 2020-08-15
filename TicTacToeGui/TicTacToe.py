@@ -301,7 +301,7 @@ class Game:
         isSet = self.Grid.SetCell(row, col, self.Player.symbol)
         self.LastCell = cell
 
-        if isSet == False:
+        if not isSet:
             return False
 
         isWon = self.Grid.CheckWin()
@@ -323,7 +323,7 @@ class Game:
         self.HandlePlayersOnSwitch()
 
     def StartConsoleGame(self):
-        while self.Finished == False:
+        while not self.Finished:
             self.DrawGrid()
 
             cell = self.Player.GetCell(self.Grid)

@@ -1,5 +1,6 @@
 # pylint: skip-file
 import sys
+import inspect
 import pygame
 import OpenGL.GL as gl
 from imgui.integrations.pygame import PygameRenderer
@@ -189,14 +190,18 @@ class Editor:
 
     def __imguiDrawScriptComponent(self, component):
         module = component.Module
-        changed, module = imgui.input_text(
-            "MODULE", module, len(module)+1, imgui.INPUT_TEXT_READ_ONLY)
-        # if changed:
-        #     component.action = action
 
-        scriptClass = component.Class
-        changed, scriptClass = imgui.input_text(
-            "CLASS", scriptClass, len(scriptClass)+1, imgui.INPUT_TEXT_READ_ONLY)
+        if imgui.button("SELECT MODULE"):
+            OpenFileDialog.ShowDialog(lambda x: print(x))
+
+        OpenFileDialog.DrawDialog()
+        imgui.same_line(spacing=10)
+        imgui.text(str(module))
+
+        if not module == "" and not module is None:
+            scriptClass = component.Class
+            changed, scriptClass = imgui.input_text(
+                "CLASS", scriptClass, len(scriptClass)+1, imgui.INPUT_TEXT_READ_ONLY)
 
     def __imguiDrawComponent(self, component):
         compName = component.__class__.__name__

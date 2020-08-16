@@ -1,3 +1,4 @@
+import os
 from ECS.Components import ScriptComponent
 
 
@@ -7,11 +8,30 @@ class ScriptProcessingSystem:
         self.Reg = scene.Reg
         self.Surface = Surface
         self.Entities = scene.Entities
-        self.Cache = dict() # Cache for all script instances
+        self.Cache = dict()  # Cache for all script instances
+
+    def importModule(self, modulePath):
+        try:
+            moduleDir, moduleFile = os.path.split(modulePath)
+            moduleName, _ = os.path.splitext(moduleFile)
+            pwd = os.getcwd()
+            
+            if moduleDir == "":
+                moduleDir = pwd
+            else:
+                os.chdir(moduleDir)
+                
+            module = __import__(moduleName)
+            module.__file__ = modulePath
+            globals()[moduleName] = module
+            os.chdir(pwd)
+            return module
+        except:
+            raise ImportError
 
     def __initializeScriptInstance(self, script, entity):
-        if not script in self.Cache.keys() :
-            module = __import__(script.Module)
+        if not script in self.Cache.keys():
+            module = self.importModule(script.Module)
             scriptClass = getattr(module, script.Class)
             instance = scriptClass(self.scene, entity)
             instance.Setup()

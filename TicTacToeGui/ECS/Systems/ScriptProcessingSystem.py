@@ -15,12 +15,12 @@ class ScriptProcessingSystem:
             moduleDir, moduleFile = os.path.split(modulePath)
             moduleName, _ = os.path.splitext(moduleFile)
             pwd = os.getcwd()
-            
+
             if moduleDir == "":
                 moduleDir = pwd
             else:
                 os.chdir(moduleDir)
-                
+
             module = __import__(moduleName)
             module.__file__ = modulePath
             globals()[moduleName] = module
@@ -30,6 +30,9 @@ class ScriptProcessingSystem:
             raise ImportError
 
     def __initializeScriptInstance(self, script, entity):
+        if script.Module == "" or script.Class == "":
+            return
+        
         if not script in self.Cache.keys():
             module = self.importModule(script.Module)
             scriptClass = getattr(module, script.Class)

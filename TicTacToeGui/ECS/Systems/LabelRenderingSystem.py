@@ -10,6 +10,8 @@ class LabelRenderingSystem:
         self.Cache = dict()
 
     def __preloadFontForLabel(self, label):
+        if label.font is None:
+            return
         if not label in self.Cache.keys() or not self.Cache[label].get_ascent() == label.size:
             self.Cache[label] = pygame.font.Font(label.font, label.size)
 
@@ -21,6 +23,9 @@ class LabelRenderingSystem:
     def RenderLable(self):
         labels = self.Reg.GetComponentsByType(LabelComponent)
         for label, entt in labels:
+            if label.text == "":
+                continue
+            
             self.__preloadFontForLabel(label)
 
             pos = self.Entities[entt].GetComponent(TransformComponent).position

@@ -1,5 +1,6 @@
 # pylint: skip-file
 import sys
+import os
 import inspect
 import pygame
 import OpenGL.GL as gl
@@ -16,6 +17,8 @@ from ECS.Systems.BoundsComputingSystem import BoundsComputingSystem
 
 from ImGuiCustomControls import FileSystem
 from ImGuiCustomControls import OpenFileDialog, SaveFileDialog, MessageBox
+
+from ScriptInspector import ModuleInfo
 
 
 class Editor:
@@ -65,6 +68,8 @@ class Editor:
         self.ScenePosition = (0, 0)
         self.GameMode = False
         self.File = None
+
+        self.Scripts = dict()
 
     def __modifyEventRelativeToScene(self, event):
         x, y = self.ScenePosition
@@ -188,20 +193,53 @@ class Editor:
         component.enabled = enabled
         imgui.same_line()
 
+    def __imguiSetScriptInComponent(self, component, script):
+        if not component.Module == "" and component.Module in self.Scripts.keys():
+            self.Scripts.pop(component.Module)
+        component.Module = script
+        self.Scripts[script] = ModuleInfo(script)
+
     def __imguiDrawScriptComponent(self, component):
         module = component.Module
 
-        if imgui.button("SELECT MODULE"):
-            OpenFileDialog.ShowDialog(lambda x: print(x))
+        if not module == "" and not module in self.Scripts.keys():
+            self.Scripts[module] = ModuleInfo(module)
 
+        if imgui.button("SELECT MODULE"):
+            OpenFileDialog.ShowDialog(
+                lambda x: self.__imguiSetScriptInComponent(component, x))
         OpenFileDialog.DrawDialog()
-        imgui.same_line(spacing=10)
-        imgui.text(str(module))
+
+        if module in self.Scripts.keys():
+            imgui.text("MODULE DIR")
+            imgui.same_line(spacing=10)
+            imgui.text_wrapped(self.Scripts[module].Location)
+            imgui.text("MODULE NAME")
+            imgui.same_line(spacing=10)
+            imgui.text_wrapped(self.Scripts[module].Name)
 
         if not module == "" and not module is None:
             scriptClass = component.Class
-            changed, scriptClass = imgui.input_text(
-                "CLASS", scriptClass, len(scriptClass)+1, imgui.INPUT_TEXT_READ_ONLY)
+            classes = self.Scripts[module].GetScriptableClassesInModule()
+            if not classes:
+                return
+            if scriptClass == "" and classes:
+                scriptClass = classes[0]
+            if imgui.button("SELECT CLASS"):
+                imgui.open_popup("Select Scriptable Class")
+
+            imgui.text("SCRIPTABLE CLASS NAME")
+            imgui.same_line(spacing=10)
+            imgui.text(scriptClass)
+
+            if imgui.begin_popup("Select Scriptable Class"):
+                for className in classes:
+                    selected = scriptClass == className
+                    _, selected = imgui.selectable(className, selected)
+                    if selected:
+                        scriptClass = className
+                imgui.end_popup()
+            component.Class = scriptClass
 
     def __imguiDrawComponent(self, component):
         compName = component.__class__.__name__

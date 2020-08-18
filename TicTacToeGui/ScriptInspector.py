@@ -24,6 +24,11 @@ class ModuleInfo:
 
     @staticmethod
     def ImportModule(modulepath, modulename):
+        # clear old existing import for the module
+        if modulename in sys.modules.keys():
+            sys.modules.pop(modulename)
+            globals().pop(modulename)
+
         try:
             pwd = os.getcwd()
 
@@ -31,13 +36,14 @@ class ModuleInfo:
                 modulepath = pwd
             else:
                 os.chdir(modulepath)
-
+            sys.path.append(modulepath)
             module = __import__(modulename)
             module.__file__ = modulepath
             globals()[modulename] = module
             os.chdir(pwd)
             return module
         except:
+            print("Oops!", sys.exc_info()[0], "occurred.")
             raise ImportError
 
     def GetScriptableClassesInModule(self):
@@ -45,6 +51,10 @@ class ModuleInfo:
         if self.MD5 == md5Hash and self.Classes:
             return self.Classes
         self.MD5 = md5Hash
+
+        self.Classes.clear()
+        self.ClassTypes.clear()
+
         ModuleInfo.ImportModule(self.Location, self.Name)
         Classes = inspect.getmembers(sys.modules[self.Name], inspect.isclass)
         for classMember in Classes:
@@ -62,6 +72,8 @@ class ModuleInfo:
                 self.Classes.append(className)
                 self.ClassTypes[className] = classMember[1]
 
+        return self.Classes
+
     def GetMethodsInClass(self, className):
         return [x for x, y in self.ClassTypes[className].__dict__.items() if type(y) == FunctionType]
 
@@ -69,13 +81,15 @@ class ModuleInfo:
     def GetModuleNameAndLocation(path):
         mPath, mFile = os.path.split(path)
         mName = os.path.splitext(mFile)[0]
+        if mPath == "":
+            mPath = os.getcwd()
 
         return mName, mPath
 
 
 if __name__ == "__main__":
     info = ModuleInfo(
-        "C:\\Users\\Kapil\\Desktop\\TicTacToe\\TicTacToeGui\\Script.py")
+        "C:\\Users\\Kapil\\Documents\\PrototypeExample\\Scripts\\MainScript.py")
     print(info.GetScriptableClassesInModule())
     methods = info.GetMethodsInClass("GameScript")
     print(methods)

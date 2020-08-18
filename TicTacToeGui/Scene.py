@@ -44,7 +44,8 @@ class TicTacToeGame(Scene):
         box2.AddComponent(TransformComponent((190, 70, 0)))
         box2.AddComponent(oSprite)
 
-        grid.AddComponent(ScriptComponent("Script", "GameScript"))
+        #grid.AddComponent(ScriptComponent("Script", "GameScript"))
+        grid.AddComponent(ScriptComponent("Script.py", "GameScript"))
         grid.AddComponent(LabelComponent(
             "TicTacToe", 'freesansbold.ttf', 32, (0, 0, 0)))
 

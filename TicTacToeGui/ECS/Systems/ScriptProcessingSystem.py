@@ -1,4 +1,4 @@
-import os
+import os,sys
 from ECS.Components import ScriptComponent
 
 
@@ -20,7 +20,7 @@ class ScriptProcessingSystem:
                 moduleDir = pwd
             else:
                 os.chdir(moduleDir)
-
+            sys.path.append(moduleDir)
             module = __import__(moduleName)
             module.__file__ = modulePath
             globals()[moduleName] = module

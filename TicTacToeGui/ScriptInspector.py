@@ -2,6 +2,7 @@ from hashlib import md5
 import os
 import sys
 import inspect
+from types import FunctionType
 
 
 class ModuleInfo:
@@ -10,6 +11,7 @@ class ModuleInfo:
         self.MD5 = ModuleInfo.ComputeHash(path)
         self.Name, self.Location = ModuleInfo.GetModuleNameAndLocation(path)
         self.Classes = list()
+        self.ClassTypes = dict()
         self.GetScriptableClassesInModule()
 
     @staticmethod
@@ -58,6 +60,10 @@ class ModuleInfo:
                     break
             if isScriptable:
                 self.Classes.append(className)
+                self.ClassTypes[className] = classMember[1]
+
+    def GetMethodsInClass(self, className):
+        return [x for x, y in self.ClassTypes[className].__dict__.items() if type(y) == FunctionType]
 
     @staticmethod
     def GetModuleNameAndLocation(path):
@@ -66,3 +72,10 @@ class ModuleInfo:
 
         return mName, mPath
 
+
+if __name__ == "__main__":
+    info = ModuleInfo(
+        "C:\\Users\\Kapil\\Desktop\\TicTacToe\\TicTacToeGui\\Script.py")
+    print(info.GetScriptableClassesInModule())
+    methods = info.GetMethodsInClass("GameScript")
+    print(methods)

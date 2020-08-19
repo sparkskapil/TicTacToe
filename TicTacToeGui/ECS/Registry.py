@@ -29,14 +29,12 @@ class Registry:
         self.ENTITYId += 1
         entity = self.ENTITYId
         self.entities.append(entity)
+        self.components[entity] = dict()
         return entity
 
     def AttachComponent(self, entity, component):
         Type = GetTypeName(component)
-        if not entity in self.components.keys():
-            self.components[entity] = dict()
         self.components[entity][Type] = component
-
         if not Type in self.repository.keys():
             self.repository[Type] = list()
         self.repository[Type].append((component, entity))
@@ -80,7 +78,12 @@ class Registry:
         self.entities.remove(entity)
         componentsToRemove = self.components.pop(entity)
         for Type in componentsToRemove.keys():
-            self.repository[Type].remove(componentsToRemove[Type], entity)
+            self.repository[Type].remove((componentsToRemove[Type], entity))
+    
+    def HasComponent(self, entity, component):
+        Type = GetTypeName(component)
+        return Type in self.components[entity].keys()
+            
 
 
 if __name__ == "__main__":

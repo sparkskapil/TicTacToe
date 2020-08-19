@@ -27,6 +27,8 @@ class BoundsComputingSystem:
                 height = max(component.height, height)
 
         transform = entity.GetComponent(TransformComponent)
+        if not transform:
+            transform = TransformComponent()
         color = (102, 178, 255)
         pygame.draw.rect(self.Surface, color, (transform.position.x,
                                                transform.position.y, width, height), 3)

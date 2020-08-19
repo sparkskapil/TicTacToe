@@ -8,6 +8,7 @@ from ECS.Systems.InputProcessingSystem import InputProcessingSystem
 from ECS.Systems.ScriptProcessingSystem import ScriptProcessingSystem
 from ECS.Systems.LabelRenderingSystem import LabelRenderingSystem
 
+from ECS.Components import TransformComponent, TagComponent
 
 
 class Scene:
@@ -18,9 +19,12 @@ class Scene:
     def GetRegistry(self):
         return self.Reg
 
-    def CreateEntity(self):
+    def CreateEntity(self, withDefaults=True):
         entity = Entity(self)
         self.Entities[entity.GetId()] = entity
+        if withDefaults:
+            entity.AddComponent(TransformComponent())
+            entity.AddComponent(TagComponent())
         return entity
 
     def RemoveEntity(self, entity):
@@ -65,7 +69,7 @@ class Scene:
 
     def SaveScene(self, filepath, binary=False):
         if not binary:
-            #TODO Add mechanism to store scene in ascii
+            # TODO Add mechanism to store scene in ascii
             pass
         state = dict()
         for entId, entity in self.Entities.items():
@@ -78,7 +82,7 @@ class Scene:
 
     def LoadScene(self, filepath, binary=False):
         if not binary:
-            #TODO Add mechanism to read scene in ascii
+            # TODO Add mechanism to read scene in ascii
             pass
         with open(filepath, 'rb') as file:
             scene = pickle.load(file)

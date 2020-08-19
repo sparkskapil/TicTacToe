@@ -42,7 +42,7 @@ class Editor:
     def updateViewPortSize(self, width, height):
         self.offscreenSurface = pygame.Surface((width, height))
         self.ViewPortSize = (width, height)
-        self.SceneMangaer.SetSurface(self.offscreenSurface)
+        self.SceneManager.SetSurface(self.offscreenSurface)
 
     def __init__(self):
         pygame.init()
@@ -59,7 +59,7 @@ class Editor:
         self.Clock = clock = pygame.time.Clock()
 
         self.SetupImGUI(size)
-        self.SceneMangaer = SceneManager()
+        self.SceneManager = SceneManager()
         self.BoundsRenderer = None
         self.updateViewPortSize(size[0], size[1])
         self.Running = True
@@ -70,6 +70,20 @@ class Editor:
         self.File = None
 
         self.Scripts = dict()
+
+        self.ComponentsList = list()
+        self.ComponentsList.append(("Add TransformComponent",
+                                    lambda: self.SelectedEntity.AddComponent(TransformComponent())))
+        self.ComponentsList.append(("Add TagComponent",
+                                    lambda: self.SelectedEntity.AddComponent(TagComponent())))
+        self.ComponentsList.append(("Add SpriteComponent",
+                                    lambda: self.SelectedEntity.AddComponent(SpriteComponent())))
+        self.ComponentsList.append(("Add LabelComponent",
+                                    lambda: self.SelectedEntity.AddComponent(LabelComponent())))
+        self.ComponentsList.append(("Add ButtonComponent",
+                                    lambda: self.SelectedEntity.AddComponent(ButtonComponent())))
+        self.ComponentsList.append(("Add ScriptComponent",
+                                    lambda: self.SelectedEntity.AddComponent(ScriptComponent())))
 
     def __modifyEventRelativeToScene(self, event):
         x, y = self.ScenePosition
@@ -135,13 +149,13 @@ class Editor:
 
         width = component.width
         changed, width = imgui.drag_int(
-            "WIDTH", width, 1, 0, self.WindowSize[0])
+            "IMAGE WIDTH", width, 1, 0, self.WindowSize[0])
         if changed:
             component.width = width
 
         height = component.height
         changed, height = imgui.drag_int(
-            "HEIGHT", height, 1, 0, self.WindowSize[1])
+            "IMAGE HEIGHT", height, 1, 0, self.WindowSize[1])
         if changed:
             component.height = height
         modesMap = {1: "Original", 2: "Fit", 3: "RespectAspect"}
@@ -170,17 +184,18 @@ class Editor:
         #     "ONCLICK", component.GetActionName(), 256, imgui.INPUT_TEXT_READ_ONLY)
         # # if changed:
         # #     component.action = action
-        # Attach OnClick Listener from Script
-        
+
+        # Attach OnClick Listener from Script/Scriptable entity
+
         width = component.width
         changed, width = imgui.drag_int(
-            "WIDTH", width, 1, 0, self.WindowSize[0])
+            "BUTTON WIDTH", width, 1, 0, self.WindowSize[0])
         if changed:
             component.width = width
 
         height = component.height
         changed, height = imgui.drag_int(
-            "HEIGHT", height, 1, 0, self.WindowSize[1])
+            "BUTTON HEIGHT", height, 1, 0, self.WindowSize[1])
         if changed:
             component.height = height
 
@@ -268,12 +283,30 @@ class Editor:
                 imgui.text(component.__repr__())
                 imgui.text("\n")
 
+    def __imguiDrawContextMenu(self, entity=None):
+        if not hasattr(self, "SceneManager"):
+            return
+        options = list()
+        options.append(("Create Entity ",
+                        self.SceneManager.GetScene().CreateEntity))
+        if entity:
+            options.append(("Remove Entity ",
+                            lambda: self.SceneManager.GetScene().RemoveEntity(entity)))
+            options.extend(self.ComponentsList)
+
+        # In pygame right mouse button is 2
+        if imgui.begin_popup_context_window(mouse_button=2):
+            for menuItem, action in options:
+                if imgui.selectable(menuItem)[1]:
+                    action()
+            imgui.end_popup()
+
     def __onSaveFile(self, file):
-        if not self.SceneMangaer.HasScene():
+        if not self.SceneManager.HasScene():
             return None
         if not FileSystem.GetFileExtension(file) == '.hsc':
             file += ".hcs"
-        self.SceneMangaer.CurrentScene.SaveScene(file)
+        self.SceneManager.CurrentScene.SaveScene(file)
 
     def __onOpenFile(self, file):
         print(file)
@@ -287,17 +320,17 @@ class Editor:
             self.ImGUIImpl.process_event(event)
 
             if self.GameMode:
-                self.SceneMangaer.Event(
+                self.SceneManager.Event(
                     self.__modifyEventRelativeToScene(event))
 
     def OnRender(self):
-        if self.SceneMangaer.HasScene():
+        if self.SceneManager.HasScene():
             if self.BoundsRenderer is None:
                 self.SelectionRenderer = BoundsComputingSystem(
-                    self.SceneMangaer.CurrentScene, self.offscreenSurface)
+                    self.SceneManager.CurrentScene, self.offscreenSurface)
             if self.GameMode:
-                self.SceneMangaer.Update()
-            self.SceneMangaer.Render()
+                self.SceneManager.Update()
+            self.SceneManager.Render()
 
             # Selection should be rendered after the scene is rendered
             if not self.GameMode and not self.SelectedEntity is None:
@@ -319,7 +352,7 @@ class Editor:
                     openFileDialogState = True
 
                 clicked_save, selected_save = imgui.menu_item(
-                    "Save", 'Ctrl+S', False, self.SceneMangaer.HasScene()
+                    "Save", 'Ctrl+S', False, self.SceneManager.HasScene()
                 )
                 if clicked_save:
                     saveFileDialogState = True
@@ -352,7 +385,7 @@ class Editor:
         OpenFileDialog.DrawDialog()
 
         if saveFileDialogState:
-            defaultFile = self.SceneMangaer.CurrentSceneName + ".hcs"
+            defaultFile = self.SceneManager.CurrentSceneName + ".hcs"
             SaveFileDialog.ShowDialog(self.__onSaveFile, None, defaultFile)
         saveFileDialogState = False
         SaveFileDialog.DrawDialog()
@@ -374,20 +407,36 @@ class Editor:
         imgui.set_next_window_size(Width*0.25, Height)
         imgui.begin("Scene Hierarchy", False, windowFlags)
 
-        if imgui.tree_node("Scene [{}]".format(self.SceneMangaer.CurrentSceneName)):
-            scene = self.SceneMangaer.GetScene()
-            if not scene is None:
+        self.__imguiDrawContextMenu(self.SelectedEntity)
+
+        entityToRemove = None
+        if imgui.tree_node("Scene [{}]".format(self.SceneManager.CurrentSceneName)):
+            scene = self.SceneManager.GetScene()
+            if scene:
                 for entId in scene.Entities.keys():
                     _, currentlySelected = imgui.selectable(
                         "Entity {}".format(entId), self.selected == entId)
-                    if currentlySelected:
+
+                    if imgui.is_item_hovered() and imgui.is_mouse_double_clicked():
+                        entityToRemove = scene.Entities[entId]
+                    elif currentlySelected:
                         self.selected = entId
+
+                if imgui.button("Create Entity"):
+                    scene.CreateEntity()
+
             imgui.tree_pop()
-        imgui.end()
 
         entId = self.selected
-        if not entId == -1:
-            self.SelectedEntity = self.SceneMangaer.GetScene().Entities[entId]
+        if entityToRemove:
+            scene.RemoveEntity(entityToRemove)
+            if self.SelectedEntity == entityToRemove:
+                self.SelectedEntity = None
+                self.selected = -1
+        elif not entId == -1:
+            self.SelectedEntity = self.SceneManager.GetScene().Entities[entId]
+
+        imgui.end()
 
         # Draw ViewPort
         imgui.set_next_window_position(Width*0.25, YOffset)
@@ -408,6 +457,16 @@ class Editor:
         imgui.begin("Inspector", False, windowFlags)
         if not self.SelectedEntity is None:
             imgui.text("Entity {}".format(self.SelectedEntity.entity))
+            imgui.same_line(
+                spacing=imgui.get_content_region_available_width() - 150)
+            if imgui.button("Add Component", 100):
+                imgui.open_popup("ComponentsList")
+            if imgui.begin_popup("ComponentsList"):
+                for menuItem, action in self.ComponentsList:
+                    if imgui.selectable(menuItem)[1]:
+                        action()
+                imgui.end_popup()
+                
             for component in self.SelectedEntity.GetComponents():
                 self.__imguiDrawComponent(component)
         imgui.end()
@@ -431,7 +490,7 @@ class Editor:
 def main():
     editor = Editor()
     editor.updateViewPortSize(500, 500)
-    editor.SceneMangaer.AddScene("MainScene", TicTacToeGame())
+    editor.SceneManager.AddScene("MainScene", TicTacToeGame())
     # scene = Scene()
     # scene.LoadScene("MainScene.hcs")
     # editor.SceneMangaer.AddScene("MainScene", scene)

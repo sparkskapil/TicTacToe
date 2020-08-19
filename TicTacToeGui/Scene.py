@@ -1,6 +1,7 @@
 from ECS.Scene import Scene
-from ECS.Components import TransformComponent, SpriteComponent
+from ECS.Components import TransformComponent, SpriteComponent, TagComponent
 from ECS.Components import ButtonComponent, LabelComponent, ScriptComponent
+from ECS.Components import Vector
 
 from Application import Application
 
@@ -14,14 +15,16 @@ class TicTacToeGame(Scene):
         Scene.__init__(self)
 
     def Setup(self):
-        background = self.CreateEntity()
+        background = self.CreateEntity(False)
         background.AddComponent(TransformComponent())
+        background.AddComponent(TagComponent("Background"))
         sprite = SpriteComponent("background.jpg")
         sprite.mode = SpriteComponent.SpriteMode.Fit
         background.AddComponent(sprite)
 
-        grid = self.CreateEntity()
+        grid = self.CreateEntity(False)
         grid.AddComponent(TransformComponent((40, 40, 0)))
+        grid.AddComponent(TagComponent("Grid"))
         gridSprite = SpriteComponent("board.png")
         gridSprite.width = 400
         gridSprite.mode = SpriteComponent.SpriteMode.RespectAspect
@@ -36,11 +39,17 @@ class TicTacToeGame(Scene):
         oSprite.mode = SpriteComponent.SpriteMode.RespectAspect
 
         box1 = self.CreateEntity()
-        box1.AddComponent(TransformComponent((70, 70, 0)))
+        transform = box1.GetComponent(TransformComponent)
+        transform.position = Vector(70, 70, 0)
+        c1tag = box1.GetComponent(TagComponent)
+        c1tag.name = "Cell1"
         box1.AddComponent(ButtonComponent(100, 100))
 
         box2 = self.CreateEntity()
-        box2.AddComponent(TransformComponent((190, 70, 0)))
+        transform = box2.GetComponent(TransformComponent)
+        transform.position = Vector(190, 70, 0)
+        c2tag = box2.GetComponent(TagComponent)
+        c2tag.name = "Cell2"
         box2.AddComponent(oSprite)
 
         #grid.AddComponent(ScriptComponent("Script", "GameScript"))

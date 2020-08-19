@@ -165,12 +165,13 @@ class Editor:
             imgui.end_popup()
 
     def __imguiDrawButtonComponent(self, component):
-        action = component.action
-        changed, action = imgui.input_text(
-            "ONCLICK", component.GetActionName(), 256, imgui.INPUT_TEXT_READ_ONLY)
-        # if changed:
-        #     component.action = action
-
+        # action = component.action
+        # changed, action = imgui.input_text(
+        #     "ONCLICK", component.GetActionName(), 256, imgui.INPUT_TEXT_READ_ONLY)
+        # # if changed:
+        # #     component.action = action
+        # Attach OnClick Listener from Script
+        
         width = component.width
         changed, width = imgui.drag_int(
             "WIDTH", width, 1, 0, self.WindowSize[0])

@@ -1,5 +1,5 @@
 from ECS.Scriptable import Scriptable
-from ECS.Components import TransformComponent
+from ECS.Components import TransformComponent, ButtonComponent
 
 
 class GameScript(Scriptable):
@@ -8,8 +8,14 @@ class GameScript(Scriptable):
 
     def Setup(self):
         self.count = 0
+        buttonComponents = self.scene.Reg.GetComponentsByType(ButtonComponent)
+        for component, entt in buttonComponents:
+            component.action = lambda: self.onButtonClick(entt)
 
     def Update(self):
         if self.count < 1:
             print("Game Object Updating...")
         self.count += 1
+
+    def onButtonClick(self, entity):
+        print("ButtonClicked Entity {}".format(entity))

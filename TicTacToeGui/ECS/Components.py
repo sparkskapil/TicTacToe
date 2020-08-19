@@ -4,6 +4,7 @@ Module contains all components supported by engine
 import math
 import inspect
 
+
 class Vector:
     # pylint: disable=invalid-name
     """
@@ -194,21 +195,14 @@ class LabelComponent:
 
 
 class ButtonComponent:
-    def __init__(self, width, height, action, enabled=True):
-        self.action = action
+    def __init__(self, width=10, height=10, enabled=True):
+        self.action = None # Action has to be set by script
         self.width = width
         self.height = height
         self.enabled = enabled
 
-    def GetActionName(self):
-        action = self.action.__name__
-        if action == "<lambda>":
-            action = inspect.getsource(self.action).split("lambda:")[1].strip()
-        return action
-
     def __repr__(self):
-        action = self.GetActionName()
-        return "[ButtonComponent]\nAction: {} \nWidth: {} \nHeight: {} \nEnabled: {}".format(action, self.width, self.height, self.enabled)
+        return "[ButtonComponent]\nAction: {} \nWidth: {} \nHeight: {} \nEnabled: {}".format(self.action, self.width, self.height, self.enabled)
 
 
 class ScriptComponent:

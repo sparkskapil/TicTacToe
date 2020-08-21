@@ -283,6 +283,16 @@ class Editor:
                 imgui.text(component.__repr__())
                 imgui.text("\n")
 
+    def __imguiRemoveEntity(self, entity):
+        scene = self.SceneManager.GetScene()
+        if not scene:
+            return
+        if entity:
+            scene.RemoveEntity(entity)
+            if self.SelectedEntity == entity:
+                self.SelectedEntity = None
+                self.selected = -1
+
     def __imguiDrawContextMenu(self, entity=None):
         if not hasattr(self, "SceneManager"):
             return
@@ -291,11 +301,17 @@ class Editor:
                         self.SceneManager.GetScene().CreateEntity))
         if entity:
             options.append(("Remove Entity ",
-                            lambda: self.SceneManager.GetScene().RemoveEntity(entity)))
+                            lambda: self.__imguiRemoveEntity(entity)))
             options.extend(self.ComponentsList)
 
+        if imgui.is_window_hovered():
+            if imgui.is_mouse_clicked(1) or imgui.is_mouse_released(1):
+                return
+            if imgui.is_mouse_released(2):
+                imgui.open_popup("SceneContextMenu")
+
         # In pygame right mouse button is 2
-        if imgui.begin_popup_context_window(mouse_button=2):
+        if imgui.begin_popup_context_window("SceneContextMenu"):
             for menuItem, action in options:
                 if imgui.selectable(menuItem)[1]:
                     action()
@@ -421,19 +437,12 @@ class Editor:
                         entityToRemove = scene.Entities[entId]
                     elif currentlySelected:
                         self.selected = entId
-
-                if imgui.button("Create Entity"):
-                    scene.CreateEntity()
-
             imgui.tree_pop()
 
         entId = self.selected
-        if entityToRemove:
-            scene.RemoveEntity(entityToRemove)
-            if self.SelectedEntity == entityToRemove:
-                self.SelectedEntity = None
-                self.selected = -1
-        elif not entId == -1:
+        self.__imguiRemoveEntity(entityToRemove)
+        
+        if not entId == -1:
             self.SelectedEntity = self.SceneManager.GetScene().Entities[entId]
 
         imgui.end()
@@ -466,7 +475,7 @@ class Editor:
                     if imgui.selectable(menuItem)[1]:
                         action()
                 imgui.end_popup()
-                
+
             for component in self.SelectedEntity.GetComponents():
                 self.__imguiDrawComponent(component)
         imgui.end()

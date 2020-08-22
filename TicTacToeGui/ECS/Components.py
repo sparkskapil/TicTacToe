@@ -172,7 +172,7 @@ class SpriteComponent:
         Fit = 2
         RespectAspect = 3
 
-    def __init__(self, imagepath="", width=None, height=None, mode=SpriteMode.Original):
+    def __init__(self, imagepath="", width=0, height=0, mode=SpriteMode.Original):
         self.image = imagepath
         self.width = width
         self.height = height
@@ -183,7 +183,7 @@ class SpriteComponent:
 
 
 class LabelComponent:
-    def __init__(self, text="", font=None, fontSize=32, foreground=(255, 255, 255), background=None):
+    def __init__(self, text="", font="", fontSize=32, foreground=(255, 255, 255), background=None):
         self.text = text
         self.font = font
         self.size = fontSize
@@ -196,7 +196,7 @@ class LabelComponent:
 
 class ButtonComponent:
     def __init__(self, width=10, height=10, enabled=True):
-        self.action = None # Action has to be set by script
+        self.action = None  # Action has to be set by script
         self.width = width
         self.height = height
         self.enabled = enabled

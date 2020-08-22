@@ -15,9 +15,9 @@ class SpriteRenderSystem:
             sprite.width = self.Surface.get_width()
             sprite.height = self.Surface.get_height()
         elif sprite.mode == SpriteComponent.SpriteMode.RespectAspect:
-            if sprite.width is None:
+            if not sprite.width:
                 sprite.width = int(imW*sprite.height / imH)
-            elif sprite.height is None:
+            elif not sprite.height:
                 sprite.height = int(imH*sprite.width / imW)
         elif sprite.mode == SpriteComponent.SpriteMode.Original:
             sprite.width = imW
@@ -29,7 +29,7 @@ class SpriteRenderSystem:
 
         # scale image if width and height not defined.
         scaleSprite = False
-        if sprite.width is None or sprite.height is None:
+        if not sprite.width or not sprite.height:
             scaleSprite = True
             self.__computeWidthHeight(sprite)
             

@@ -23,7 +23,7 @@ class LabelRenderingSystem:
     def RenderLable(self):
         labels = self.Reg.GetComponentsByType(LabelComponent)
         for label, entt in labels:
-            if label.text == "":
+            if label.text == "" or label.font == "":
                 continue
             
             self.__preloadFontForLabel(label)

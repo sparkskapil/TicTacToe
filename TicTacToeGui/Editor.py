@@ -207,7 +207,6 @@ class Editor:
         if imgui.radio_button("False", not enabled):
             enabled = False
         component.enabled = enabled
-        imgui.same_line()
 
     def __imguiSetScriptInComponent(self, component, script):
         if not component.Module == "" and component.Module in self.Scripts.keys():

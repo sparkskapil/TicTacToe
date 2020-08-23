@@ -1,4 +1,5 @@
-import os,sys
+import os
+import sys
 from ECS.Components import ScriptComponent
 
 
@@ -32,7 +33,7 @@ class ScriptProcessingSystem:
     def __initializeScriptInstance(self, script, entity):
         if script.Module == "" or script.Class == "":
             return
-        
+
         if not script in self.Cache.keys():
             module = self.importModule(script.Module)
             scriptClass = getattr(module, script.Class)
@@ -43,5 +44,7 @@ class ScriptProcessingSystem:
     def UpdateGameObjects(self):
         scripts = self.Reg.GetComponentsByType(ScriptComponent)
         for script, ent in scripts:
+            if script.Module == "" or script.Class == "":
+                continue
             self.__initializeScriptInstance(script, self.Entities[ent])
             self.Cache[script].Update()

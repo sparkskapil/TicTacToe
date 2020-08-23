@@ -27,6 +27,7 @@ class ModuleInfo:
         # clear old existing import for the module
         if modulename in sys.modules.keys():
             sys.modules.pop(modulename)
+        if modulename in globals().keys():
             globals().pop(modulename)
 
         try:

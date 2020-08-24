@@ -94,7 +94,7 @@ class Scene:
         with open(filepath, 'rb') as file:
             scene = pickle.load(file)
             for _, components in scene.items():
-                entt = self.CreateEntity()
+                entt = self.CreateEntity(False)
                 for component in components:
                     entt.AddComponent(component)
 

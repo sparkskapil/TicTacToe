@@ -15,6 +15,8 @@ class Scene:
     def __init__(self):
         self.Reg = Registry()
         self.Entities = dict()
+        self.SceneChanged = True
+        self.SceneLocation = ""
 
     def GetRegistry(self):
         return self.Reg
@@ -25,6 +27,7 @@ class Scene:
         if withDefaults:
             entity.AddComponent(TransformComponent())
             entity.AddComponent(TagComponent())
+        self.NotifySceneChanged()
         return entity
 
     def RemoveEntity(self, entity):
@@ -35,6 +38,7 @@ class Scene:
             entId = entity
         self.Entities.pop(entId)
         self.Reg.RemoveEntity(entId)
+        self.NotifySceneChanged()
 
     def OnSetup(self, surface):
         self.Surface = surface
@@ -80,6 +84,9 @@ class Scene:
         with open(filepath, 'wb') as file:
             pickle.dump(state, file)
 
+        self.SceneChanged = False
+        self.SceneLocation = filepath
+
     def LoadScene(self, filepath, binary=False):
         if not binary:
             # TODO Add mechanism to read scene in ascii
@@ -90,3 +97,9 @@ class Scene:
                 entt = self.CreateEntity()
                 for component in components:
                     entt.AddComponent(component)
+
+        self.SceneChanged = False
+        self.SceneLocation = filepath
+
+    def NotifySceneChanged(self):
+        self.SceneChanged = True

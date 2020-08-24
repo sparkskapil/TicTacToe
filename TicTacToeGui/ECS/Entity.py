@@ -8,6 +8,7 @@ class Entity:
             print("{} already present for {} entity".format(
                 Component.__class__.__name__, self.entity))
             return self.GetComponent(Component)
+        self.Scene.NotifySceneChanged()
         return self.Scene.GetRegistry().AttachComponent(self.entity, Component)
 
     def GetComponents(self):
@@ -17,6 +18,7 @@ class Entity:
         return self.Scene.GetRegistry().GetComponent(self.entity, Typename)
 
     def RemoveComponent(self, Typename):
+        self.Scene.NotifySceneChanged()
         return self.Scene.GetRegistry().RemoveComponent(self.entity, Typename)
 
     def GetId(self):

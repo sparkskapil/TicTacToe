@@ -26,7 +26,7 @@ class Scene:
         self.Entities[entity.GetId()] = entity
         if withDefaults:
             entity.AddComponent(TransformComponent())
-            entity.AddComponent(TagComponent())
+            entity.AddComponent(TagComponent(f'Entity_{entity.GetId()}'))
         self.NotifySceneChanged()
         return entity
 
@@ -43,11 +43,11 @@ class Scene:
     def OnSetup(self, surface):
         self.Surface = surface
         self.Setup()
-        self.SpriteRenderer = SpriteRenderSystem(self, self.Surface)
+        self.SpriteRenderer = SpriteRenderSystem(self)
         self.SpriteRenderer.PreLoadSprites()
         self.InputHandler = InputProcessingSystem(self)
         self.ScriptProcessor = ScriptProcessingSystem(self)
-        self.LabelRenderer = LabelRenderingSystem(self, self.Surface)
+        self.LabelRenderer = LabelRenderingSystem(self)
         self.LabelRenderer.PreloadFonts()
 
     def OnRender(self):
@@ -74,7 +74,7 @@ class Scene:
     def SaveScene(self, filepath, binary=False):
         if not filepath.endswith('.pts'):
             filepath = filepath + '.pts'
-            
+
         if not binary:
             # TODO Add mechanism to store scene in ascii
             pass
@@ -106,3 +106,7 @@ class Scene:
 
     def NotifySceneChanged(self):
         self.SceneChanged = True
+
+    def SetSurface(self, surface):
+        self.SpriteRenderer.Surface = surface
+        self.LabelRenderer.Surface = surface

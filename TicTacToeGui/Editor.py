@@ -19,6 +19,7 @@ from ImGuiCustomControls import FileSystem
 from ImGuiCustomControls import OpenFileDialog, SaveFileDialog, MessageBox
 
 from ScriptInspector import ModuleInfo
+from Project import Project
 
 
 class Editor:
@@ -40,11 +41,11 @@ class Editor:
         self.WindowSize = imgui.get_io().display_size
 
     def updateViewPortSize(self, width, height):
-        self.offscreenSurface = pygame.Surface((width, height))
+        offscreenSurface = pygame.Surface((width, height))
         self.ViewPortSize = (width, height)
-        self.SceneManager.SetSurface(self.offscreenSurface)
+        self.Project.SceneManager.SetSurface(offscreenSurface)
 
-    def __init__(self):
+    def __init__(self, projectPath):
         pygame.init()
 
         size = 800, 600
@@ -59,9 +60,11 @@ class Editor:
         self.Clock = clock = pygame.time.Clock()
 
         self.SetupImGUI(size)
-        self.SceneManager = SceneManager()
         self.BoundsRenderer = None
+        self.Project = Project(projectPath)
         self.updateViewPortSize(size[0], size[1])
+        self.Project.LoadProject()
+        
         self.Running = True
         self.SelectedEntity = None
         self.selected = -1
@@ -104,8 +107,7 @@ class Editor:
 
     def __imguiDrawTagComponent(self, component):
         text = component.name
-        changed, text = imgui.input_text("TAGNAME", text, 100,
-                                         imgui.INPUT_TEXT_CHARS_UPPERCASE)
+        changed, text = imgui.input_text("TAGNAME", text, 100)
         if changed:
             component.name = text
 
@@ -283,7 +285,7 @@ class Editor:
                 imgui.text("\n")
 
     def __imguiRemoveEntity(self, entity):
-        scene = self.SceneManager.GetScene()
+        scene = self.Project.SceneManager.GetScene()
         if not scene:
             return
         if entity:
@@ -293,11 +295,9 @@ class Editor:
                 self.selected = -1
 
     def __imguiDrawContextMenu(self, entity=None):
-        if not hasattr(self, "SceneManager"):
-            return
         options = list()
         options.append(("Create Entity ",
-                        self.SceneManager.GetScene().CreateEntity))
+                        self.Project.SceneManager.GetScene().CreateEntity))
         if entity:
             options.append(("Remove Entity ",
                             lambda: self.__imguiRemoveEntity(entity)))
@@ -317,9 +317,10 @@ class Editor:
             imgui.end_popup()
 
     def __onSaveFile(self, file):
-        if not self.SceneManager.HasScene():
+        if not self.Project.SceneManager.HasScene():
             return None
-        self.SceneManager.CurrentScene.SaveScene(file)
+        self.Project.SceneManager.CurrentScene.SaveScene(file)
+        self.Project.SaveProject()
 
     def __onOpenFile(self, file):
         print(file)
@@ -333,17 +334,17 @@ class Editor:
             self.ImGUIImpl.process_event(event)
 
             if self.GameMode:
-                self.SceneManager.Event(
+                self.Project.SceneManager.Event(
                     self.__modifyEventRelativeToScene(event))
 
     def OnRender(self):
-        if self.SceneManager.HasScene():
+        if self.Project.SceneManager.HasScene():
             if self.BoundsRenderer is None:
                 self.SelectionRenderer = BoundsComputingSystem(
-                    self.SceneManager.CurrentScene, self.offscreenSurface)
+                    self.Project.SceneManager.CurrentScene, self.Project.GetSurface())
             if self.GameMode:
-                self.SceneManager.Update()
-            self.SceneManager.Render()
+                self.Project.SceneManager.Update()
+            self.Project.SceneManager.Render()
 
             # Selection should be rendered after the scene is rendered
             if not self.GameMode and not self.SelectedEntity is None:
@@ -365,9 +366,19 @@ class Editor:
                     openFileDialogState = True
 
                 clicked_save, selected_save = imgui.menu_item(
-                    "Save", 'Ctrl+S', False, self.SceneManager.HasScene()
+                    "Save", 'Ctrl+S', False, self.Project.SceneManager.HasScene()
                 )
                 if clicked_save:
+                    path = self.Project.GetCurrentScene().SceneLocation
+                    if path:
+                        self.Project.GetCurrentScene().SaveScene(path)
+                    else:
+                        saveFileDialogState = True
+
+                clicked_save_as, _ = imgui.menu_item(
+                    "Save As", 'Ctrl+Shift+S', False, self.Project.SceneManager.HasScene()
+                )
+                if clicked_save_as:
                     saveFileDialogState = True
 
                 clicked_quit, selected_quit = imgui.menu_item(
@@ -398,7 +409,7 @@ class Editor:
         OpenFileDialog.DrawDialog()
 
         if saveFileDialogState:
-            defaultFile = self.SceneManager.CurrentSceneName + ".hcs"
+            defaultFile = self.Project.SceneManager.CurrentSceneName + ".hcs"
             SaveFileDialog.ShowDialog(self.__onSaveFile, None, defaultFile)
         saveFileDialogState = False
         SaveFileDialog.DrawDialog()
@@ -406,7 +417,7 @@ class Editor:
         # Create texture from Pygame Surface
         if hasattr(self, "Texture"):
             GLHelpers.DeleteTexture(self.Texture)
-        tex, w, h = GLHelpers.SurfaceToTexture(self.offscreenSurface)
+        tex, w, h = GLHelpers.SurfaceToTexture(self.Project.GetSurface())
         self.Texture = tex
 
         windowFlags = imgui.WINDOW_NO_RESIZE | imgui.WINDOW_NO_MOVE | imgui.WINDOW_NO_COLLAPSE
@@ -423,8 +434,8 @@ class Editor:
         self.__imguiDrawContextMenu(self.SelectedEntity)
 
         entityToRemove = None
-        if imgui.tree_node("Scene [{}]".format(self.SceneManager.CurrentSceneName)):
-            scene = self.SceneManager.GetScene()
+        if imgui.tree_node("Scene [{}]".format(self.Project.SceneManager.CurrentSceneName)):
+            scene = self.Project.SceneManager.GetScene()
             if scene:
                 for entId in scene.Entities.keys():
                     _, currentlySelected = imgui.selectable(
@@ -438,9 +449,9 @@ class Editor:
 
         entId = self.selected
         self.__imguiRemoveEntity(entityToRemove)
-        
+
         if not entId == -1:
-            self.SelectedEntity = self.SceneManager.GetScene().Entities[entId]
+            self.SelectedEntity = self.Project.SceneManager.GetScene().Entities[entId]
 
         imgui.end()
 
@@ -486,7 +497,7 @@ class Editor:
         while self.Running:
             dt = self.Clock.tick(60)
             self.OnEvent()
-            self.offscreenSurface.fill((51, 51, 51))
+            self.Project.GetSurface().fill((51, 51, 51))
             self.OnRender()
             self.OnImGuiRender()
             pygame.display.flip()
@@ -494,9 +505,8 @@ class Editor:
 
 
 def main():
-    editor = Editor()
+    editor = Editor("C:\\Users\\Kapil\\Documents\\PrototypeExample\\PrototypeExample.ptproj")
     editor.updateViewPortSize(500, 500)
-    editor.SceneManager.AddScene("MainScene", TicTacToeGame())
     # scene = Scene()
     # scene.LoadScene("MainScene.hcs")
     # editor.SceneMangaer.AddScene("MainScene", scene)

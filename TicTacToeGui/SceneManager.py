@@ -27,7 +27,7 @@ class SceneManager:
 
     def SetSurface(self, Surface):
         for scene in self.Scenes.keys():
-            self.Scenes[scene].Surface = Surface
+            self.Scenes[scene].SetSurface(Surface)
         self.Surface = Surface
 
     def Render(self):

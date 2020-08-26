@@ -25,8 +25,8 @@ class Project:
             raise Exception("The path already contains a project")
 
         # Create Index file with the project Name
-        with open(projectFile, 'w') as fp:
-            pass
+        with open(projectFile, 'w') as writer:
+            json.dump(dict(), writer)
 
     def __init__(self, path):
         self.ProjectFile = None
@@ -41,27 +41,18 @@ class Project:
         if self.ProjectFile is None:
             self.ProjectFile = os.path.join(
                 self.ProjectDir, (self.ProjectName + EXTENSION))
-
         self.SceneManager = SceneManager()
-        self.LoadProject()
 
-    def AddNewScene(self, sceneName):
+    def CreateNewScene(self, sceneName):
         scene = Scene()
         scene.CreateEntity()
         self.SceneManager.AddScene(sceneName, scene)
 
     def SaveProject(self):
         index = dict()
-        scenedir = os.path.join(self.ProjectDir, "Scene")
-        if not os.path.exists(scenedir):
-            os.mkdir(scenedir)
-
         for sceneName, scene in self.SceneManager.Scenes.items():
-            if scene.SceneLocation == "":
-                filepath = os.path.join(scenedir, sceneName)
-                sceneRelativePath = filepath.replace(
-                    self.ProjectDir, '').strip('\\').strip('/')
-                scene.SaveScene(filepath)
+            sceneRelativePath = scene.SceneLocation.replace(
+                self.ProjectDir, '').strip('\\').strip('/')
             index[sceneName] = sceneRelativePath
 
         index["__current__"] = self.SceneManager.CurrentSceneName
@@ -86,7 +77,14 @@ class Project:
             scene = Scene()
             scene.LoadScene(os.path.join(self.ProjectDir, relPath))
             self.SceneManager.AddScene(sceneName, scene)
-        print(self.SceneManager.CurrentSceneName)
+
+    def GetSurface(self):
+        if self.SceneManager and self.SceneManager.HasScene():
+            return self.SceneManager.Surface
+        return None
+
+    def GetCurrentScene(self):
+        return self.SceneManager.CurrentScene
 
 
 if __name__ == "__main__":

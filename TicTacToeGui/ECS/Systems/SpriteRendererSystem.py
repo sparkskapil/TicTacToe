@@ -6,7 +6,8 @@ class SpriteRenderSystem:
     def __init__(self, scene, Surface=None):
         self.Reg = scene.Reg
         self.Entities = scene.Entities
-        self.Surface = Surface
+        if not Surface:
+            self.Surface = scene.Surface
         self.Cache = dict()
 
     def __computeWidthHeight(self, sprite):

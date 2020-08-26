@@ -72,6 +72,9 @@ class Scene:
         '''
 
     def SaveScene(self, filepath, binary=False):
+        if not filepath.endswith('.pts'):
+            filepath = filepath + '.pts'
+            
         if not binary:
             # TODO Add mechanism to store scene in ascii
             pass

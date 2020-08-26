@@ -319,8 +319,6 @@ class Editor:
     def __onSaveFile(self, file):
         if not self.SceneManager.HasScene():
             return None
-        if not FileSystem.GetFileExtension(file) == '.hsc':
-            file += ".hcs"
         self.SceneManager.CurrentScene.SaveScene(file)
 
     def __onOpenFile(self, file):

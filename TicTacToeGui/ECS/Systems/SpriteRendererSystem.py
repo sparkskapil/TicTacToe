@@ -67,7 +67,7 @@ class SpriteRenderSystem:
         for sprite, ent in sprites:
             if sprite.image == "":
                 continue
-            if sprite.image in self.Cache.keys():
+            if not sprite in self.Cache.keys():
                 self.Cache[sprite] = pygame.image.load(sprite.image)
             self.__transformSprite(sprite)
             transform = self.Entities[ent].GetComponent(TransformComponent)

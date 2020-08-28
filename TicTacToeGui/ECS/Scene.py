@@ -1,3 +1,5 @@
+import os
+from copy import deepcopy
 import pickle
 import json
 
@@ -38,6 +40,14 @@ class Scene:
             entId = entity
         self.Entities.pop(entId)
         self.Reg.RemoveEntity(entId)
+        self.NotifySceneChanged()
+
+    def CloneEntity(self, entity):
+        if not entity:
+            return
+        clonedEntity = self.CreateEntity(False)
+        for component in entity.GetComponents():
+            clonedEntity.AddComponent(deepcopy(component))
         self.NotifySceneChanged()
 
     def OnSetup(self, surface):
@@ -84,9 +94,13 @@ class Scene:
                 state[entId] = list()
             state[entId].extend(entity.GetComponents())
 
-        with open(filepath, 'wb') as file:
+        with open(filepath+'.tmp', 'wb') as file:
             pickle.dump(state, file)
-
+        
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        os.rename(filepath+'.tmp', filepath)
+        
         self.SceneChanged = False
         self.SceneLocation = filepath
 

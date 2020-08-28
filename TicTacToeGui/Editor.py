@@ -41,8 +41,8 @@ class Editor:
         pygame.init()
 
         self.Texture = None
-        self.WindowSize = (800,600)
-        
+        self.WindowSize = (800, 600)
+
         mode = pygame.DOUBLEBUF | pygame.OPENGL | pygame.RESIZABLE
 
         pygame.display.set_mode(self.WindowSize, mode)
@@ -54,16 +54,17 @@ class Editor:
         self.SetupImGUI(self.WindowSize)
         self.BoundsRenderer = None
         self.Project = Project(projectPath)
-        self.updateViewPortSize(int(self.WindowSize[0]), int(self.WindowSize[1]))
+        self.updateViewPortSize(
+            int(self.WindowSize[0]), int(self.WindowSize[1]))
         self.Project.LoadProject()
-        
+
         self.Running = True
         self.SelectedEntity = None
-        
+
         self.ScenePosition = (0, 0)
         self.GameMode = False
         self.File = None
-        
+
         self.SelectionRenderer = None
         self.Scripts = dict()
 
@@ -288,6 +289,9 @@ class Editor:
             if self.SelectedEntity == entity:
                 self.SelectedEntity = None
 
+    def __imguiCloneEntity(self, entity):
+        self.Project.SceneManager.GetScene().CloneEntity(entity)
+
     def __imguiDrawContextMenu(self, entity=None):
         options = list()
         options.append(("Create Entity ",
@@ -295,6 +299,8 @@ class Editor:
         if entity:
             options.append(("Remove Entity ",
                             lambda: self.__imguiRemoveEntity(entity)))
+            options.append(("Clone Entity ",
+                            lambda: self.__imguiCloneEntity(entity)))
             options.extend(self.ComponentsList)
 
         if imgui.is_window_hovered():
@@ -381,7 +387,7 @@ class Editor:
                     self.Running = False
 
                 imgui.end_menu()
-                
+
             if imgui.begin_menu("Game", True):
                 clickedRun, _ = imgui.menu_item(
                     "Run", 'Cmd+R', False, not self.GameMode
@@ -394,7 +400,7 @@ class Editor:
                 if clickedStop:
                     self.GameMode = False
                 imgui.end_menu()
-                
+
             _, menubarHeight = imgui.get_item_rect_size()
             imgui.end_main_menu_bar()
 
@@ -465,7 +471,7 @@ class Editor:
         if not self.SelectedEntity is None:
             imgui.text("Entity {}".format(self.SelectedEntity.entity))
             imgui.same_line(
-                spacing=imgui.get_content_region_available_width() - 150)
+                position=imgui.get_content_region_available_width() - 90)
             if imgui.button("Add Component", 100):
                 imgui.open_popup("ComponentsList")
             if imgui.begin_popup("ComponentsList"):
@@ -473,7 +479,7 @@ class Editor:
                     if imgui.selectable(menuItem)[1]:
                         action()
                 imgui.end_popup()
-                
+
             componentToRemove = None
             for component in self.SelectedEntity.GetComponents():
                 if self.__imguiDrawComponent(component):
@@ -481,7 +487,7 @@ class Editor:
             if componentToRemove:
                 self.SelectedEntity.RemoveComponent(componentToRemove)
         imgui.end()
-        
+
         gl.glClearColor(1, 1, 1, 1)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT)
         imgui.render()
@@ -499,7 +505,8 @@ class Editor:
 
 
 def main():
-    editor = Editor("C:\\Users\\Kapil\\Documents\\PrototypeExample\\PrototypeExample.ptproj")
+    editor = Editor(
+        "C:\\Users\\Kapil\\Documents\\PrototypeExample\\PrototypeExample.ptproj")
     editor.updateViewPortSize(500, 500)
     editor.Run()
 

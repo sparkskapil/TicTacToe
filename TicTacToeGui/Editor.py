@@ -1,22 +1,14 @@
-# pylint: skip-file
-import sys
-import os
-import inspect
 import pygame
 import OpenGL.GL as gl
 from imgui.integrations.pygame import PygameRenderer
 import imgui
-from PygameHelpers import *
-from SceneManager import SceneManager
+from PygameHelpers import GLHelpers, SDL_Maximize
 
-from Scene import TicTacToeGame
 from ECS.Components import Vector, TransformComponent, TagComponent, LabelComponent
-from ECS.Components import Vector, SpriteComponent, ButtonComponent, ScriptComponent
-from ECS.Scene import Scene
+from ECS.Components import SpriteComponent, ButtonComponent, ScriptComponent
 from ECS.Systems.BoundsComputingSystem import BoundsComputingSystem
 
-from ImGuiCustomControls import FileSystem
-from ImGuiCustomControls import OpenFileDialog, SaveFileDialog, MessageBox
+from ImGuiCustomControls import OpenFileDialog, SaveFileDialog
 
 from ScriptInspector import ModuleInfo
 from Project import Project
@@ -48,30 +40,31 @@ class Editor:
     def __init__(self, projectPath):
         pygame.init()
 
-        size = 800, 600
+        self.Texture = None
+        self.WindowSize = (800,600)
+        
         mode = pygame.DOUBLEBUF | pygame.OPENGL | pygame.RESIZABLE
 
-        pygame.display.set_mode(size, mode)
+        pygame.display.set_mode(self.WindowSize, mode)
         pygame.display.set_caption("Editor")
         pygame.display.init()
         SDL_Maximize()
-        info = pygame.display.Info()
 
-        self.Clock = clock = pygame.time.Clock()
-
-        self.SetupImGUI(size)
+        self.Clock = pygame.time.Clock()
+        self.SetupImGUI(self.WindowSize)
         self.BoundsRenderer = None
         self.Project = Project(projectPath)
-        self.updateViewPortSize(size[0], size[1])
+        self.updateViewPortSize(int(self.WindowSize[0]), int(self.WindowSize[1]))
         self.Project.LoadProject()
         
         self.Running = True
         self.SelectedEntity = None
-        self.selected = -1
+        
         self.ScenePosition = (0, 0)
         self.GameMode = False
         self.File = None
-
+        
+        self.SelectionRenderer = None
         self.Scripts = dict()
 
         self.ComponentsList = list()
@@ -260,7 +253,8 @@ class Editor:
 
     def __imguiDrawComponent(self, component):
         compName = component.__class__.__name__
-        expanded, _ = imgui.collapsing_header(compName, True)
+        expanded, visible = imgui.collapsing_header(compName, True)
+
         if expanded:
             if isinstance(component, TransformComponent):
                 self.__imguiDrawTransformComponentComponent(component)
@@ -283,6 +277,7 @@ class Editor:
             else:
                 imgui.text(component.__repr__())
                 imgui.text("\n")
+            return not visible
 
     def __imguiRemoveEntity(self, entity):
         scene = self.Project.SceneManager.GetScene()
@@ -292,7 +287,6 @@ class Editor:
             scene.RemoveEntity(entity)
             if self.SelectedEntity == entity:
                 self.SelectedEntity = None
-                self.selected = -1
 
     def __imguiDrawContextMenu(self, entity=None):
         options = list()
@@ -353,54 +347,55 @@ class Editor:
     def OnImGuiRender(self):
         self.OnApplicationResize()
         imgui.new_frame()
-        menubarWidth = 0
         menubarHeight = 0
         openFileDialogState = False
         saveFileDialogState = False
         if imgui.begin_main_menu_bar():
             if imgui.begin_menu("File", True):
 
-                clicked_open, selected_open = imgui.menu_item(
+                clickedOpen, _ = imgui.menu_item(
                     "Open", 'Ctrl+O', False)
-                if clicked_open:
+                if clickedOpen:
                     openFileDialogState = True
 
-                clicked_save, selected_save = imgui.menu_item(
+                clickedSave, _ = imgui.menu_item(
                     "Save", 'Ctrl+S', False, self.Project.SceneManager.HasScene()
                 )
-                if clicked_save:
+                if clickedSave:
                     path = self.Project.GetCurrentScene().SceneLocation
                     if path:
                         self.Project.GetCurrentScene().SaveScene(path)
                     else:
                         saveFileDialogState = True
 
-                clicked_save_as, _ = imgui.menu_item(
+                clickedSaveAs, _ = imgui.menu_item(
                     "Save As", 'Ctrl+Shift+S', False, self.Project.SceneManager.HasScene()
                 )
-                if clicked_save_as:
+                if clickedSaveAs:
                     saveFileDialogState = True
 
-                clicked_quit, selected_quit = imgui.menu_item(
+                clickedQuit, _ = imgui.menu_item(
                     "Quit", 'Ctrl+Q', False, True
                 )
-                if clicked_quit:
+                if clickedQuit:
                     self.Running = False
 
                 imgui.end_menu()
+                
             if imgui.begin_menu("Game", True):
-                clicked_run, selected_quit = imgui.menu_item(
+                clickedRun, _ = imgui.menu_item(
                     "Run", 'Cmd+R', False, not self.GameMode
                 )
-                if clicked_run:
+                if clickedRun:
                     self.GameMode = True
-                clicked_stop, selected_quit = imgui.menu_item(
+                clickedStop, _ = imgui.menu_item(
                     "Stop", 'Cmd+T', False, self.GameMode
                 )
-                if clicked_stop:
+                if clickedStop:
                     self.GameMode = False
                 imgui.end_menu()
-            menubarWidth, menubarHeight = imgui.get_item_rect_size()
+                
+            _, menubarHeight = imgui.get_item_rect_size()
             imgui.end_main_menu_bar()
 
         if openFileDialogState:
@@ -409,26 +404,26 @@ class Editor:
         OpenFileDialog.DrawDialog()
 
         if saveFileDialogState:
-            defaultFile = self.Project.SceneManager.CurrentSceneName + ".hcs"
+            defaultFile = self.Project.SceneManager.CurrentSceneName + ".pts"
             SaveFileDialog.ShowDialog(self.__onSaveFile, None, defaultFile)
         saveFileDialogState = False
         SaveFileDialog.DrawDialog()
 
         # Create texture from Pygame Surface
-        if hasattr(self, "Texture"):
+        if self.Texture:
             GLHelpers.DeleteTexture(self.Texture)
         tex, w, h = GLHelpers.SurfaceToTexture(self.Project.GetSurface())
         self.Texture = tex
 
         windowFlags = imgui.WINDOW_NO_RESIZE | imgui.WINDOW_NO_MOVE | imgui.WINDOW_NO_COLLAPSE
 
-        YOffset = menubarHeight - 2
-        Width = self.WindowSize[0]
-        Height = self.WindowSize[1] - YOffset
+        yOffset = menubarHeight - 2
+        windowWidth = self.WindowSize[0]
+        windowHeight = self.WindowSize[1] - yOffset
 
         # Draw Left Pane
-        imgui.set_next_window_position(0, YOffset)
-        imgui.set_next_window_size(Width*0.25, Height)
+        imgui.set_next_window_position(0, yOffset)
+        imgui.set_next_window_size(windowWidth*0.25, windowHeight)
         imgui.begin("Scene Hierarchy", False, windowFlags)
 
         self.__imguiDrawContextMenu(self.SelectedEntity)
@@ -439,38 +434,33 @@ class Editor:
             if scene:
                 for entId in scene.Entities.keys():
                     _, currentlySelected = imgui.selectable(
-                        "Entity {}".format(entId), self.selected == entId)
+                        "Entity {}".format(entId), self.SelectedEntity == scene.Entities[entId])
 
                     if imgui.is_item_hovered() and imgui.is_mouse_double_clicked():
                         entityToRemove = scene.Entities[entId]
-                    elif currentlySelected:
-                        self.selected = entId
+                    elif currentlySelected and not entId == -1:
+                        self.SelectedEntity = scene.Entities[entId]
             imgui.tree_pop()
 
-        entId = self.selected
         self.__imguiRemoveEntity(entityToRemove)
-
-        if not entId == -1:
-            self.SelectedEntity = self.Project.SceneManager.GetScene().Entities[entId]
-
         imgui.end()
 
         # Draw ViewPort
-        imgui.set_next_window_position(Width*0.25, YOffset)
-        imgui.set_next_window_size(Width*0.50, Height)
+        imgui.set_next_window_position(windowWidth*0.25, yOffset)
+        imgui.set_next_window_size(windowWidth*0.50, windowHeight)
         imgui.begin("Viewport", False, windowFlags)
         winWidth, winHeight = imgui.get_window_size()
-        self.ScenePosition = Width*0.25 + \
-            (winWidth - w)/2, YOffset + (winHeight - h)/2
-        imgui.set_cursor_pos_x(self.ScenePosition[0] - Width*0.25)
-        imgui.set_cursor_pos_y(self.ScenePosition[1] - YOffset)
+        self.ScenePosition = windowWidth*0.25 + \
+            (winWidth - w)/2, yOffset + (winHeight - h)/2
+        imgui.set_cursor_pos_x(self.ScenePosition[0] - windowWidth*0.25)
+        imgui.set_cursor_pos_y(self.ScenePosition[1] - yOffset)
 
         imgui.image(tex, w, h)
         imgui.end()
 
         # Draw Right Pane
-        imgui.set_next_window_position(Width*0.75, YOffset)
-        imgui.set_next_window_size(Width*0.25, Height)
+        imgui.set_next_window_position(windowWidth*0.75, yOffset)
+        imgui.set_next_window_size(windowWidth*0.25, windowHeight)
         imgui.begin("Inspector", False, windowFlags)
         if not self.SelectedEntity is None:
             imgui.text("Entity {}".format(self.SelectedEntity.entity))
@@ -483,11 +473,15 @@ class Editor:
                     if imgui.selectable(menuItem)[1]:
                         action()
                 imgui.end_popup()
-
+                
+            componentToRemove = None
             for component in self.SelectedEntity.GetComponents():
-                self.__imguiDrawComponent(component)
+                if self.__imguiDrawComponent(component):
+                    componentToRemove = component
+            if componentToRemove:
+                self.SelectedEntity.RemoveComponent(componentToRemove)
         imgui.end()
-
+        
         gl.glClearColor(1, 1, 1, 1)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT)
         imgui.render()
@@ -495,7 +489,7 @@ class Editor:
 
     def Run(self):
         while self.Running:
-            dt = self.Clock.tick(60)
+            _ = self.Clock.tick(60)
             self.OnEvent()
             self.Project.GetSurface().fill((51, 51, 51))
             self.OnRender()
@@ -507,9 +501,6 @@ class Editor:
 def main():
     editor = Editor("C:\\Users\\Kapil\\Documents\\PrototypeExample\\PrototypeExample.ptproj")
     editor.updateViewPortSize(500, 500)
-    # scene = Scene()
-    # scene.LoadScene("MainScene.hcs")
-    # editor.SceneMangaer.AddScene("MainScene", scene)
     editor.Run()
 
 

@@ -43,10 +43,13 @@ class Project:
                 self.ProjectDir, (self.ProjectName + EXTENSION))
         self.SceneManager = SceneManager()
 
-    def CreateNewScene(self, sceneName):
+    def CreateNewScene(self, sceneName, location=None):
         scene = Scene()
-        scene.CreateEntity()
+        if location:
+            scene.SaveScene(location)
         self.SceneManager.AddScene(sceneName, scene)
+        self.SceneManager.SetScene(sceneName)
+        self.SaveProject()
 
     def SaveProject(self):
         index = dict()

@@ -49,18 +49,26 @@ class FileSystem:
         return os.path.exists(path) and os.path.isfile(path)
 
     @staticmethod
-    def IsValidDirectory(directory):
+    def IsValidDirectory(directory): 
         return os.path.exists(directory) and os.path.isdir(directory)
 
     @staticmethod
     def GetFileExtension(filepath):
         return os.path.splitext(filepath)[1]
-
+    
+    @staticmethod
+    def GetFileName(filepath):
+        return filepath.replace('/',"\\").split('\\')[-1].split('.')[0]
+        
     @staticmethod
     def DeleteFile(filepath):
         if not FileSystem.IsValidFile(filepath):
             raise Exception("File does not exist in the directory")
         os.remove(filepath)
+
+    @staticmethod
+    def JoinPath(*args):
+        return os.path.join(*args)
 
 
 BUTTON_WIDTH = 50

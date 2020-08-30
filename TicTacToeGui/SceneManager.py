@@ -7,7 +7,7 @@ class SceneManager:
 
     def HasScene(self):
         return not self.CurrentScene is None
-
+    
     def AddScene(self, name, scene):
         self.Scenes[name] = scene
         if self.CurrentScene is None:

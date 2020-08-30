@@ -8,7 +8,7 @@ from ECS.Components import Vector, TransformComponent, TagComponent, LabelCompon
 from ECS.Components import SpriteComponent, ButtonComponent, ScriptComponent
 from ECS.Systems.BoundsComputingSystem import BoundsComputingSystem
 
-from ImGuiCustomControls import OpenFileDialog, SaveFileDialog
+from ImGuiCustomControls import FileSystem, OpenFileDialog, SaveFileDialog
 
 from ScriptInspector import ModuleInfo
 from Project import Project
@@ -321,6 +321,11 @@ class Editor:
             return None
         self.Project.SceneManager.CurrentScene.SaveScene(file)
         self.Project.SaveProject()
+        
+    def __onCreateNewScene(self, file):
+        sceneName = FileSystem.GetFileName(file)
+        self.Project.CreateNewScene(sceneName, file)
+        
 
     def __onOpenFile(self, file):
         print(file)
@@ -356,6 +361,7 @@ class Editor:
         menubarHeight = 0
         openFileDialogState = False
         saveFileDialogState = False
+        createNewScene = False
         if imgui.begin_main_menu_bar():
             if imgui.begin_menu("File", True):
 
@@ -401,6 +407,25 @@ class Editor:
                     self.GameMode = False
                 imgui.end_menu()
 
+            if imgui.begin_menu("Scene", self.Project.SceneManager.HasScene()):
+                clickedCreateScene, _ = imgui.menu_item(
+                    "Create Scene", None, False, True)
+                if clickedCreateScene:
+                    createNewScene = True
+                    saveFileDialogState = True
+                    
+                imgui.separator()
+                currScene = self.Project.SceneManager.CurrentSceneName
+                selectedScene = currScene
+                for sceneName, scene in self.Project.SceneManager.Scenes.items():
+                    selected = sceneName == currScene
+                    clickedScene, _ = imgui.menu_item(
+                        sceneName, None, selected, not selected)
+                    if clickedScene:
+                        selectedScene = sceneName
+                self.Project.SceneManager.SetScene(selectedScene)
+
+                imgui.end_menu()
             _, menubarHeight = imgui.get_item_rect_size()
             imgui.end_main_menu_bar()
 
@@ -410,15 +435,24 @@ class Editor:
         OpenFileDialog.DrawDialog()
 
         if saveFileDialogState:
-            defaultFile = self.Project.SceneManager.CurrentSceneName + ".pts"
-            SaveFileDialog.ShowDialog(self.__onSaveFile, None, defaultFile)
+            sceneName = self.Project.SceneManager.CurrentSceneName
+            if createNewScene:
+                sceneName = "New Scene"                
+            defaultFile = FileSystem.JoinPath(self.Project.ProjectDir, "Scene", f"{sceneName}.pts")
+
+            if createNewScene:
+                SaveFileDialog.ShowDialog(self.__onCreateNewScene, None, defaultFile)
+            else:
+                SaveFileDialog.ShowDialog(self.__onSaveFile, None, defaultFile)
+            
         saveFileDialogState = False
         SaveFileDialog.DrawDialog()
 
         # Create texture from Pygame Surface
         if self.Texture:
             GLHelpers.DeleteTexture(self.Texture)
-        tex, w, h = GLHelpers.SurfaceToTexture(self.Project.GetSurface())
+        tex, texWidth, texHeight = GLHelpers.SurfaceToTexture(
+            self.Project.GetSurface())
         self.Texture = tex
 
         windowFlags = imgui.WINDOW_NO_RESIZE | imgui.WINDOW_NO_MOVE | imgui.WINDOW_NO_COLLAPSE
@@ -457,11 +491,11 @@ class Editor:
         imgui.begin("Viewport", False, windowFlags)
         winWidth, winHeight = imgui.get_window_size()
         self.ScenePosition = windowWidth*0.25 + \
-            (winWidth - w)/2, yOffset + (winHeight - h)/2
+            (winWidth - texWidth)/2, yOffset + (winHeight - texHeight)/2
         imgui.set_cursor_pos_x(self.ScenePosition[0] - windowWidth*0.25)
         imgui.set_cursor_pos_y(self.ScenePosition[1] - yOffset)
 
-        imgui.image(tex, w, h)
+        imgui.image(tex, texWidth, texHeight)
         imgui.end()
 
         # Draw Right Pane

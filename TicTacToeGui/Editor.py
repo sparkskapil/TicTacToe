@@ -385,6 +385,12 @@ class Editor:
                 )
                 if clickedSaveAs:
                     saveFileDialogState = True
+                
+                clickedSaveProject, _ = imgui.menu_item(
+                    "Save Project", None, False, self.Project.SceneManager.HasScene()
+                )
+                if clickedSaveProject:
+                    self.Project.SaveProject()
 
                 clickedQuit, _ = imgui.menu_item(
                     "Quit", 'Ctrl+Q', False, True

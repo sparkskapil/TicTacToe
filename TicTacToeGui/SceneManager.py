@@ -10,12 +10,12 @@ class SceneManager:
     
     def AddScene(self, name, scene):
         self.Scenes[name] = scene
+        scene.OnSetup(self.Surface)
         if self.CurrentScene is None:
             self.SetScene(name)
 
     def SetScene(self, name):
         scene = self.Scenes[name]
-        scene.OnSetup(self.Surface)
         self.CurrentScene = scene
         self.CurrentSceneName = name
 

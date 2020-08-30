@@ -53,23 +53,35 @@ class Scene:
     def OnSetup(self, surface):
         self.Surface = surface
         self.Setup()
-        self.SpriteRenderer = SpriteRenderSystem(self)
-        self.SpriteRenderer.PreLoadSprites()
-        self.InputHandler = InputProcessingSystem(self)
-        self.ScriptProcessor = ScriptProcessingSystem(self)
-        self.LabelRenderer = LabelRenderingSystem(self)
-        self.LabelRenderer.PreloadFonts()
+        try:
+            self.SpriteRenderer = SpriteRenderSystem(self)
+            self.SpriteRenderer.PreLoadSprites()
+            self.InputHandler = InputProcessingSystem(self)
+            self.ScriptProcessor = ScriptProcessingSystem(self)
+            self.LabelRenderer = LabelRenderingSystem(self)
+            self.LabelRenderer.PreloadFonts()
+        except Exception as e:
+            print(e)
 
     def OnRender(self):
-        self.SpriteRenderer.RenderSpriteComponents()
-        self.LabelRenderer.RenderLable()
+        try:
+            self.SpriteRenderer.RenderSpriteComponents()
+            self.LabelRenderer.RenderLable()
+        except Exception as e:
+            print(e)
 
     def OnUpdate(self):
-        self.ScriptProcessor.UpdateGameObjects()
-        self.Update()
+        try:
+            self.ScriptProcessor.UpdateGameObjects()
+            self.Update()
+        except Exception as e:
+            print(e)
 
     def OnEvent(self, event):
-        self.InputHandler.CheckAndProcessButtonClicks(event)
+        try:
+            self.InputHandler.CheckAndProcessButtonClicks(event)
+        except Exception as e:
+            print(e)
 
     def Setup(self):
         '''
@@ -96,11 +108,11 @@ class Scene:
 
         with open(filepath+'.tmp', 'wb') as file:
             pickle.dump(state, file)
-        
+
         if os.path.exists(filepath):
             os.remove(filepath)
         os.rename(filepath+'.tmp', filepath)
-        
+
         self.SceneChanged = False
         self.SceneLocation = filepath
 

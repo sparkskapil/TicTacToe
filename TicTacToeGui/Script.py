@@ -31,6 +31,8 @@ class GameScript(Scriptable):
             entity.AddComponent(self.xSprite)
         else:
             entity.AddComponent(self.oSprite)
-        entity.GetComponent(ButtonComponent).enabled = False
+        button = entity.GetComponent(ButtonComponent)
+        entity.RemoveComponent(button)
+        
         self.turn += 1
         self.turn %= 2

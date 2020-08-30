@@ -42,7 +42,7 @@ class ScriptProcessingSystem:
             self.Cache[script] = instance
 
     def UpdateGameObjects(self):
-        scripts = self.Reg.GetComponentsByType(ScriptComponent)
+        scripts = self.Reg.GetComponentsByType(ScriptComponent).copy()
         for script, ent in scripts:
             if script.Module == "" or script.Class == "":
                 continue

@@ -1,11 +1,17 @@
 from ECS.Components import TagComponent
 
+
 def Event(func: callable, *args, **kwargs):
     return lambda: func(*args, **kwargs)
 
+
+def StateEvent(func: callable, *args, **kwargs):
+    return lambda x: func(x, *args, **kwargs)
+
+
 class Scriptable:
     def __init__(self, scene, entity):
-        self.scene = scene
+        self.Scene = scene
         self.Reg = scene.Reg
         self.Surface = scene.Surface
         self.Entity = entity
@@ -15,25 +21,30 @@ class Scriptable:
 
     def GetComponents(self):
         return self.Entity.GetComponents()
-    
+
     def GetSceneComponentsByType(self, typename):
         return self.Reg.GetComponentsByType(typename)
-    
+
     def GetEntity(self, entityId):
-        return self.scene.Entities[entityId]
-    
+        return self.Scene.Entities[entityId]
+
     def GetEntitiesByTag(self, tagname):
         tags = self.GetSceneComponentsByType(TagComponent)
         entities = list()
         for tag, enttId in tags:
             if tag.name == tagname:
-                entities.append(self.scene.Entities[enttId])
+                entities.append(self.Scene.Entities[enttId])
         return entities
-           
-    def AddOnClickListener(self, button, event:callable):
-        self.scene.InputHandler.AddOnClickListener(button, event)
-    
-     
+
+    def AddOnClickListener(self, button, event: callable):
+        self.Scene.InputHandler.AddOnClickListener(button, event)
+
+    def AddOnHoverListener(self, button, event: callable):
+        self.Scene.InputHandler.AddOnHoverListener(button, event)
+
+    def GetSceneManager(self):
+        return self.Scene.GetSceneManager()
+
     # Will contains instance of
     # 1. Physics Manager
     # 2. Input Manager

@@ -38,5 +38,5 @@ class LabelRenderingSystem:
                 label.text, True, label.color, bgColor)
 
             textRect = text.get_rect()
-            textRect.center = (pos.x, pos.y)
+            textRect.topleft = (pos.x, pos.y)
             self.Surface.blit(text, textRect)

@@ -25,11 +25,12 @@ class GameModes(Enum):
 
 
 class PlayersFactory:
+    @staticmethod
     def GetPlayers(GameMode):
         if GameMode == GameModes.PvP:
             return [Player('X'),  Player('O')]
         if GameMode == GameModes.Computer:
-            return [Player('X'), AIPlayerFast('O', 'X')]
+            return [Player('X'), AIPlayer('O', 'X')]
         if GameMode == GameModes.Network:
             player = NetworkPlayer('localhost', 5000)
             if player.symbol == 'X':
@@ -114,18 +115,18 @@ class AIPlayer:
             return 0
 
         scores = []
-        minScore = 100
-        maxScore = -100
         for i in range(3):
             for j in range(3):
-                if grid.grid[i][j] == 0:
-                    node = deepcopy(grid)
-                    if maximize:
-                        node.SetCell(i, j, self.symbol)
-                    else:
-                        node.SetCell(i, j, self.opponent)
-                    score = self.Score(node, not maximize)
-                    scores.append(score)
+                if grid.grid[i][j] != 0:
+                    continue
+                node = grid
+                if maximize:
+                    node.SetCell(i, j, self.symbol)
+                else:
+                    node.SetCell(i, j, self.opponent)
+                score = self.Score(node, not maximize)
+                node.SetCell(i, j, 0)
+                scores.append(score)
 
         if maximize:
             return max(scores)
@@ -146,9 +147,10 @@ class AIPlayer:
         return max(scores, key=scores.get)
 
     def GetCell(self, grid, game=None):
+        if not game or game.Finished:
+            return -1
         cell = self.MiniMax(grid)
-        if game != None:
-            game.TakeTurn(cell)
+        game.TakeTurn(cell)
         return int(cell)
 
 
@@ -167,27 +169,30 @@ class AIPlayerFast:
         scores = []
         for i in range(3):
             for j in range(3):
-                if grid.grid[i][j] == 0:
-                    node = deepcopy(grid)
-                    if maximize:
-                        node.SetCell(i, j, self.symbol)
-                    else:
-                        node.SetCell(i, j, self.opponent)
-                    score = self.Score(node, not maximize)
-                    scores.append(score)
+                if grid.grid[i][j] != 0:
+                    continue
+                node = deepcopy(grid)
+                if maximize:
+                    node.SetCell(i, j, self.symbol)
+                else:
+                    node.SetCell(i, j, self.opponent)
+                score = self.Score(node, not maximize)
+                scores.append(score)
 
-                    if maximize:
-                        alpha[0] = max(alpha[0], score)
-                    else:
-                        beta[0] = min(beta[0], score)
+                if maximize:
+                    alpha[0] = max(alpha[0], score)
+                else:
+                    beta[0] = min(beta[0], score)
 
-                    if beta[0] < alpha[0]:
-                        break
+                if beta[0] < alpha[0]:
+                    break
 
         if maximize:
-            return max(scores)
+            if len(scores) != 0:
+                return max(scores)
         else:
-            return min(scores)
+            if len(scores) != 0:
+                return min(scores)
 
     def MiniMax(self, grid):
         scores = {}
@@ -203,9 +208,10 @@ class AIPlayerFast:
         return max(scores, key=scores.get)
 
     def GetCell(self, grid, game=None):
+        if not game or game.Finished:
+            return -1
         cell = self.MiniMax(grid)
-        if game != None:
-            game.TakeTurn(cell)
+        game.TakeTurn(cell)
         return int(cell)
 
 
@@ -247,8 +253,8 @@ class NetworkPlayer:
 
 
 class Game:
-    def __init__(self):
-        self.Players = PlayersFactory.GetPlayers(GameModes.Network)
+    def __init__(self, mode):
+        self.Players = PlayersFactory.GetPlayers(mode)
         self.Busy = False
         self.ResetGame()
         self.LastCell = -1
@@ -339,5 +345,5 @@ class Game:
 
 
 if __name__ == "__main__":
-    game = Game()
+    game = Game(GameModes.Computer)
     game.StartConsoleGame()

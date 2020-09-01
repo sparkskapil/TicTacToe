@@ -19,6 +19,7 @@ class Scene:
         self.Entities = dict()
         self.SceneChanged = True
         self.SceneLocation = ""
+        self.SceneManager = None
 
     def GetRegistry(self):
         return self.Reg
@@ -136,3 +137,9 @@ class Scene:
     def SetSurface(self, surface):
         self.SpriteRenderer.Surface = surface
         self.LabelRenderer.Surface = surface
+        
+    def SetSceneManager(self, manager):
+        self.SceneManager = manager
+    
+    def GetSceneManager(self):
+        return self.SceneManager

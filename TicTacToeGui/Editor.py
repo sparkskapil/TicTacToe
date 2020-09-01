@@ -84,7 +84,7 @@ class Editor:
 
     def __modifyEventRelativeToScene(self, event):
         x, y = self.ScenePosition
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        if hasattr(event, 'pos'):
             event.pos = event.pos[0] - x, event.pos[1] - y
         return event
 
@@ -229,7 +229,7 @@ class Editor:
             imgui.same_line(spacing=10)
             imgui.text_wrapped(self.Scripts[module].Name)
 
-        if not module == "" and not module is None:
+        if module and module in self.Scripts.keys():
             scriptClass = component.Class
             classes = self.Scripts[module].GetScriptableClassesInModule()
             if not classes:
@@ -321,11 +321,10 @@ class Editor:
             return None
         self.Project.SceneManager.CurrentScene.SaveScene(file)
         self.Project.SaveProject()
-        
+
     def __onCreateNewScene(self, file):
         sceneName = FileSystem.GetFileName(file)
         self.Project.CreateNewScene(sceneName, file)
-        
 
     def __onOpenFile(self, file):
         print(file)
@@ -385,7 +384,7 @@ class Editor:
                 )
                 if clickedSaveAs:
                     saveFileDialogState = True
-                
+
                 clickedSaveProject, _ = imgui.menu_item(
                     "Save Project", None, False, self.Project.SceneManager.HasScene()
                 )
@@ -405,12 +404,14 @@ class Editor:
                     "Run", 'Cmd+R', False, not self.GameMode
                 )
                 if clickedRun:
+                    self.Project.SaveProject()
                     self.GameMode = True
                 clickedStop, _ = imgui.menu_item(
                     "Stop", 'Cmd+T', False, self.GameMode
                 )
                 if clickedStop:
                     self.GameMode = False
+                    self.Project.ResetScenes()
                 imgui.end_menu()
 
             if imgui.begin_menu("Scene", self.Project.SceneManager.HasScene()):
@@ -419,8 +420,9 @@ class Editor:
                 if clickedCreateScene:
                     createNewScene = True
                     saveFileDialogState = True
-                    
+
                 imgui.separator()
+
                 currScene = self.Project.SceneManager.CurrentSceneName
                 selectedScene = currScene
                 for sceneName, scene in self.Project.SceneManager.Scenes.items():
@@ -429,7 +431,9 @@ class Editor:
                         sceneName, None, selected, not selected)
                     if clickedScene:
                         selectedScene = sceneName
-                self.Project.SceneManager.SetScene(selectedScene)
+                if not selectedScene == currScene:
+                    self.Project.SceneManager.SetScene(selectedScene)
+                    self.SelectedEntity = None
 
                 imgui.end_menu()
             _, menubarHeight = imgui.get_item_rect_size()
@@ -443,14 +447,16 @@ class Editor:
         if saveFileDialogState:
             sceneName = self.Project.SceneManager.CurrentSceneName
             if createNewScene:
-                sceneName = "New Scene"                
-            defaultFile = FileSystem.JoinPath(self.Project.ProjectDir, "Scene", f"{sceneName}.pts")
+                sceneName = "New Scene"
+            defaultFile = FileSystem.JoinPath(
+                self.Project.ProjectDir, "Scene", f"{sceneName}.pts")
 
             if createNewScene:
-                SaveFileDialog.ShowDialog(self.__onCreateNewScene, None, defaultFile)
+                SaveFileDialog.ShowDialog(
+                    self.__onCreateNewScene, None, defaultFile)
             else:
                 SaveFileDialog.ShowDialog(self.__onSaveFile, None, defaultFile)
-            
+
         saveFileDialogState = False
         SaveFileDialog.DrawDialog()
 
@@ -536,9 +542,9 @@ class Editor:
     def Run(self):
         while self.Running:
             _ = self.Clock.tick(60)
-            self.OnEvent()
             self.Project.GetSurface().fill((51, 51, 51))
             self.OnRender()
+            self.OnEvent()
             self.OnImGuiRender()
             pygame.display.flip()
         pygame.quit()

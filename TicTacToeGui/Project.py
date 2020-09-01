@@ -89,6 +89,12 @@ class Project:
     def GetCurrentScene(self):
         return self.SceneManager.CurrentScene
 
+    def ResetScenes(self):
+        for sceneName, scene in self.SceneManager.Scenes.items():
+            newScene = Scene()
+            newScene.LoadScene(scene.SceneLocation)
+            self.SceneManager.AddScene(sceneName, newScene)
+        self.SceneManager.SetScene(self.SceneManager.CurrentSceneName)
 
 if __name__ == "__main__":
     PROJECT_PATH = "C:\\Users\\Kapil\\Documents"

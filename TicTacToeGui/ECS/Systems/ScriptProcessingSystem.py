@@ -13,8 +13,10 @@ class ScriptProcessingSystem:
 
     def importModule(self, modulePath):
         try:
+            
             moduleDir, moduleFile = os.path.split(modulePath)
             moduleName, _ = os.path.splitext(moduleFile)
+            
             pwd = os.getcwd()
 
             if moduleDir == "":
@@ -36,8 +38,11 @@ class ScriptProcessingSystem:
 
         if not script in self.Cache.keys():
             module = self.importModule(script.Module)
+            if not module:
+                return None
             scriptClass = getattr(module, script.Class)
             instance = scriptClass(self.scene, entity)
+            instance.SceneManager = self.scene.GetSceneManager()
             instance.Setup()
             self.Cache[script] = instance
 

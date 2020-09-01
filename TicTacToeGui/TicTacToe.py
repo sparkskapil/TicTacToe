@@ -23,6 +23,9 @@ class GameModes(Enum):
     # Player Vs Player over Network
     Network = 3
 
+    # Computer Alpha Beta Pruning
+    ComputerV2 = 4
+
 
 class PlayersFactory:
     @staticmethod
@@ -31,6 +34,8 @@ class PlayersFactory:
             return [Player('X'),  Player('O')]
         if GameMode == GameModes.Computer:
             return [Player('X'), AIPlayer('O', 'X')]
+        if GameMode == GameModes.ComputerV2:
+            return [Player('X'), AIPlayerFast('O', 'X')]
         if GameMode == GameModes.Network:
             player = NetworkPlayer('localhost', 5000)
             if player.symbol == 'X':
@@ -60,6 +65,9 @@ class Grid:
             self.grid[row][col] = symbol
             return True
         return False
+
+    def ResetCell(self, row, col):
+        self.grid[row][col] = 0
 
     def CheckWin(self):
         for i in range(3):
@@ -114,24 +122,29 @@ class AIPlayer:
         if grid.CheckTie():
             return 0
 
-        scores = []
-        for i in range(3):
-            for j in range(3):
-                if grid.grid[i][j] != 0:
-                    continue
-                node = grid
-                if maximize:
-                    node.SetCell(i, j, self.symbol)
-                else:
-                    node.SetCell(i, j, self.opponent)
-                score = self.Score(node, not maximize)
-                node.SetCell(i, j, 0)
-                scores.append(score)
+        maxScore = -100
+        minScore = 100
+        for cell in range(0, 9):
+            i = cell // 3
+            j = cell % 3
+            status = False
+            if maximize:
+                status = grid.SetCell(i, j, self.symbol)
+            else:
+                status = grid.SetCell(i, j, self.opponent)
+            if not status:
+                continue
+            score = self.Score(grid, not maximize)
+            if score > maxScore:
+                maxScore = score
+            if score < minScore:
+                minScore = score
+            grid.ResetCell(i, j)
 
         if maximize:
-            return max(scores)
+            return maxScore
         else:
-            return min(scores)
+            return minScore
 
     def MiniMax(self, grid):
         scores = {}
@@ -139,15 +152,17 @@ class AIPlayer:
             for j in range(3):
                 if not grid.grid[i][j] == 0:
                     continue
-                node = deepcopy(grid)
-                node.SetCell(i, j, self.symbol)
-                score = self.Score(node, False)
+                grid.SetCell(i, j, self.symbol)
+                score = self.Score(grid, False)
+                grid.ResetCell(i, j)
                 cell = i*3 + j + 1
                 scores[cell] = score
+
         return max(scores, key=scores.get)
 
     def GetCell(self, grid, game=None):
         if not game or game.Finished:
+            game.Busy = False
             return -1
         cell = self.MiniMax(grid)
         game.TakeTurn(cell)
@@ -160,39 +175,42 @@ class AIPlayerFast:
         self.symbol = symbol
         self.opponent = opponent
 
-    def Score(self, grid, maximize, alpha=[-1000], beta=[1000]):
+    def Score(self, grid, maximize, depth, alpha=[-1000], beta=[1000]):
         if grid.CheckWin():
-            return -1 if maximize else 1
+            return -10 + depth if maximize else 10 - depth
         if grid.CheckTie():
             return 0
 
-        scores = []
+        minScore = 100
+        maxScore = -100
         for i in range(3):
             for j in range(3):
                 if grid.grid[i][j] != 0:
                     continue
-                node = deepcopy(grid)
+
                 if maximize:
-                    node.SetCell(i, j, self.symbol)
+                    grid.SetCell(i, j, self.symbol)
                 else:
-                    node.SetCell(i, j, self.opponent)
-                score = self.Score(node, not maximize)
-                scores.append(score)
+                    grid.SetCell(i, j, self.opponent)
+                score = self.Score(grid, not maximize, depth+1)
+                grid.ResetCell(i, j)
+                if score > maxScore:
+                    maxScore = score
+                if score < minScore:
+                    minScore = score
 
                 if maximize:
                     alpha[0] = max(alpha[0], score)
                 else:
                     beta[0] = min(beta[0], score)
 
-                if beta[0] < alpha[0]:
+                if beta[0] <= alpha[0]:
                     break
 
         if maximize:
-            if len(scores) != 0:
-                return max(scores)
+            return maxScore
         else:
-            if len(scores) != 0:
-                return min(scores)
+            return minScore
 
     def MiniMax(self, grid):
         scores = {}
@@ -202,13 +220,14 @@ class AIPlayerFast:
                     continue
                 node = deepcopy(grid)
                 node.SetCell(i, j, self.symbol)
-                score = self.Score(node, False)
+                score = self.Score(node, False, 1)
                 cell = i*3 + j + 1
                 scores[cell] = score
         return max(scores, key=scores.get)
 
     def GetCell(self, grid, game=None):
         if not game or game.Finished:
+            game.Busy = False
             return -1
         cell = self.MiniMax(grid)
         game.TakeTurn(cell)
@@ -324,7 +343,7 @@ class Game:
             self.SwitchPlayer()
             self.HandlePlayersOnSwitch()
             return False
-
+        self.Busy = False
         self.SwitchPlayer()
         self.HandlePlayersOnSwitch()
 

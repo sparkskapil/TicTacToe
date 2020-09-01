@@ -58,9 +58,5 @@ class InputProcessingSystem:
                     self.Cache[button]['hover'][1] = False
 
                 state = self.Cache[button]['hover'][1]
-                try:
-                    self.Cache[button]['hover'][0](state)
-                except Exception as e:
-                    print(state)
-                    print(self.Cache[button]['hover'])
-                    print(sys.exc_info())
+                self.Cache[button]['hover'][0](state)
+                

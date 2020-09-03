@@ -3,6 +3,7 @@ from copy import deepcopy
 from enum import Enum
 from threading import Thread
 import socket
+import json
 
 
 def ClearConsole():
@@ -109,18 +110,30 @@ class Grid:
                 cellValues += str(self.grid[i][j]) + ', '
         return cellValues
 
+    def __repr__(self):
+        string = ""
+        for i in range(0, 3):
+            for j in range(0, 3):
+                string += str(self.grid[i][j])
+        return string
 
 # Bot with Simple Mini Max Algorithm
+
+
 class AIPlayer:
     def __init__(self, symbol, opponent):
         self.symbol = symbol
         self.opponent = opponent
+        with open('aistates.json') as reader:
+            self.Scores = json.load(reader)
 
     def Score(self, grid, maximize):
         if grid.CheckWin():
             return -1 if maximize else 1
         if grid.CheckTie():
             return 0
+        if grid.__repr__() in self.Scores.keys():
+            return self.Scores[grid.__repr__()]
 
         maxScore = -100
         minScore = 100
@@ -143,8 +156,7 @@ class AIPlayer:
 
         if maximize:
             return maxScore
-        else:
-            return minScore
+        return minScore
 
     def MiniMax(self, grid):
         scores = {}
@@ -157,11 +169,12 @@ class AIPlayer:
                 grid.ResetCell(i, j)
                 cell = i*3 + j + 1
                 scores[cell] = score
-
         return max(scores, key=scores.get)
 
     def GetCell(self, grid, game=None):
-        if not game or game.Finished:
+        if not game:
+            return -1
+        if game.Finished:
             game.Busy = False
             return -1
         gameState = deepcopy(grid)
@@ -204,7 +217,7 @@ class AIPlayerFast:
                     alpha[0] = max(alpha[0], score)
                 else:
                     beta[0] = min(beta[0], score)
-               
+
                 if beta[0] <= alpha[0]:
                     break
 
@@ -349,7 +362,7 @@ class Game:
             self.SwitchPlayer()
             self.HandlePlayersOnSwitch()
             return False
-        
+
         self.SwitchPlayer()
         self.HandlePlayersOnSwitch()
 
@@ -369,5 +382,5 @@ class Game:
 
 
 if __name__ == "__main__":
-    game = Game(GameModes.ComputerV2)
+    game = Game(GameModes.Computer)
     game.StartConsoleGame()

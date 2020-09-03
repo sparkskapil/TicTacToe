@@ -193,7 +193,7 @@ class AIPlayerFast:
                     grid.SetCell(i, j, self.symbol)
                 else:
                     grid.SetCell(i, j, self.opponent)
-                score = self.Score(grid, not maximize, depth+1)
+                score = self.Score(grid, not maximize, depth+1, alpha, beta)
                 grid.ResetCell(i, j)
                 if score > maxScore:
                     maxScore = score
@@ -202,12 +202,11 @@ class AIPlayerFast:
 
                 if maximize:
                     alpha[0] = max(alpha[0], score)
-                    if beta[0] > alpha[0]:
-                        break
                 else:
                     beta[0] = min(beta[0], score)
-                    if beta[0] <= alpha[0]:
-                        break
+               
+                if beta[0] <= alpha[0]:
+                    break
 
         if maximize:
             return maxScore

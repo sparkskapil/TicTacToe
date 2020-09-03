@@ -164,7 +164,8 @@ class AIPlayer:
         if not game or game.Finished:
             game.Busy = False
             return -1
-        cell = self.MiniMax(grid)
+        gameState = deepcopy(grid)
+        cell = self.MiniMax(gameState)
         game.TakeTurn(cell)
         return int(cell)
 
@@ -201,11 +202,12 @@ class AIPlayerFast:
 
                 if maximize:
                     alpha[0] = max(alpha[0], score)
+                    if beta[0] > alpha[0]:
+                        break
                 else:
                     beta[0] = min(beta[0], score)
-
-                if beta[0] <= alpha[0]:
-                    break
+                    if beta[0] <= alpha[0]:
+                        break
 
         if maximize:
             return maxScore
@@ -226,10 +228,14 @@ class AIPlayerFast:
         return max(scores, key=scores.get)
 
     def GetCell(self, grid, game=None):
-        if not game or game.Finished:
+        if not game:
+            return -1
+        if game.Finished:
             game.Busy = False
             return -1
-        cell = self.MiniMax(grid)
+        game.Busy = True
+        gameState = deepcopy(grid)
+        cell = self.MiniMax(gameState)
         game.TakeTurn(cell)
         return int(cell)
 
@@ -291,6 +297,8 @@ class Game:
         self.Player = self.Players[self.PlayerIndex]
 
     def DrawGrid(self):
+        while(self.Busy):
+            pass
         ClearConsole()
         self.Grid.PrintGrid()
 
@@ -309,7 +317,6 @@ class Game:
     def HandlePlayersOnSwitch(self):
         if isinstance(self.Player, AIPlayerFast) or isinstance(self.Player, AIPlayer) or isinstance(self.Player, NetworkPlayer):
             thread = Thread(target=self.Player.GetCell, args=(self.Grid, self))
-            self.Busy = True
             thread.start()
 
     def IsBusy(self):
@@ -343,14 +350,13 @@ class Game:
             self.SwitchPlayer()
             self.HandlePlayersOnSwitch()
             return False
-        self.Busy = False
+        
         self.SwitchPlayer()
         self.HandlePlayersOnSwitch()
 
     def StartConsoleGame(self):
         while not self.Finished:
             self.DrawGrid()
-
             cell = self.Player.GetCell(self.Grid)
             self.TakeTurn(cell)
 
@@ -360,9 +366,9 @@ class Game:
             print('Game Tied !!!')
 
         else:
-            print('Player ({}) Wins'.format(self.Player.symbol))
+            print('Player ({}) Wins'.format(self.Winner.symbol))
 
 
 if __name__ == "__main__":
-    game = Game(GameModes.Computer)
+    game = Game(GameModes.ComputerV2)
     game.StartConsoleGame()

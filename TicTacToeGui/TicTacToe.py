@@ -110,12 +110,17 @@ class Grid:
                 cellValues += str(self.grid[i][j]) + ', '
         return cellValues
 
-    def __repr__(self):
-        string = ""
+    def toNum(self):
+        num = 0
         for i in range(0, 3):
             for j in range(0, 3):
-                string += str(self.grid[i][j])
-        return string
+                if self.grid[i][j] == 0:
+                    num += 0
+                elif self.grid[i][j] == 'X':
+                    num += 1
+                elif self.grid[i][j] == 'O':
+                    num += 2
+                num *= 10
 
 # Bot with Simple Mini Max Algorithm
 
@@ -132,8 +137,9 @@ class AIPlayer:
             return -1 if maximize else 1
         if grid.CheckTie():
             return 0
-        if grid.__repr__() in self.Scores.keys():
-            return self.Scores[grid.__repr__()]
+        state = grid.toNum()
+        if state in self.Scores.keys():
+            return self.Scores[state]
 
         maxScore = -100
         minScore = 100
@@ -336,7 +342,7 @@ class Game:
 
     def TakeTurn(self, cell):
         self.Busy = False
-        if not 0 < cell < 10:
+        if self.Finished or not 0 < cell < 10:
             return False
 
         row = (cell-1) // 3

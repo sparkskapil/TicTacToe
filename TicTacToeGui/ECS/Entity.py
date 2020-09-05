@@ -17,7 +17,12 @@ class Entity:
     def GetComponent(self, Typename):
         return self.Scene.GetRegistry().GetComponent(self.entity, Typename)
 
+    def HasComponent(self, Typename):
+        return self.Scene.Reg.HasComponent(self.entity, Typename)
+
     def RemoveComponent(self, Typename):
+        if not self.Scene.Reg.HasComponent(self.entity, Typename):
+            return None
         self.Scene.NotifySceneChanged()
         return self.Scene.GetRegistry().RemoveComponent(self.entity, Typename)
 

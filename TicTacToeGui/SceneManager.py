@@ -19,6 +19,7 @@ class SceneManager:
         scene = self.Scenes[name]
         self.CurrentScene = scene
         self.CurrentSceneName = name
+        scene.OnSetup(self.Surface)
 
     def GetScene(self, name=None):
         if name is None:

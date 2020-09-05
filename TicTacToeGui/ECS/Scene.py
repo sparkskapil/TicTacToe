@@ -20,6 +20,7 @@ class Scene:
         self.SceneChanged = True
         self.SceneLocation = ""
         self.SceneManager = None
+        self.Surface = None
 
     def GetRegistry(self):
         return self.Reg
@@ -52,7 +53,6 @@ class Scene:
         self.NotifySceneChanged()
 
     def OnSetup(self, surface):
-        self.Surface = surface
         self.Setup()
         try:
             self.SpriteRenderer = SpriteRenderSystem(self)
@@ -61,6 +61,7 @@ class Scene:
             self.ScriptProcessor = ScriptProcessingSystem(self)
             self.LabelRenderer = LabelRenderingSystem(self)
             self.LabelRenderer.PreloadFonts()
+            self.SetSurface(surface)
         except Exception as e:
             print(e)
 
@@ -135,11 +136,12 @@ class Scene:
         self.SceneChanged = True
 
     def SetSurface(self, surface):
+        self.Surface = surface
         self.SpriteRenderer.Surface = surface
         self.LabelRenderer.Surface = surface
-        
+
     def SetSceneManager(self, manager):
         self.SceneManager = manager
-    
+
     def GetSceneManager(self):
         return self.SceneManager

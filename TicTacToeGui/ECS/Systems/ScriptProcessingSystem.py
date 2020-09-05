@@ -10,6 +10,7 @@ class ScriptProcessingSystem:
         self.Surface = Surface
         self.Entities = scene.Entities
         self.Cache = dict()  # Cache for all script instances
+        self.LoadedModules = list()
 
     def importModule(self, modulePath):
         try:
@@ -27,6 +28,8 @@ class ScriptProcessingSystem:
             module = __import__(moduleName)
             module.__file__ = modulePath
             globals()[moduleName] = module
+            
+            self.LoadedModules.append((moduleDir, moduleName))
             os.chdir(pwd)
             return module
         except:
@@ -53,3 +56,10 @@ class ScriptProcessingSystem:
                 continue
             self.__initializeScriptInstance(script, self.Entities[ent])
             self.Cache[script].Update()
+            
+    def __del__(self): 
+        self.Cache.clear()
+        for mdir, mname in self.LoadedModules:
+            sys.path.remove(mdir)
+            if mname in globals().keys():
+                globals().pop(mname)

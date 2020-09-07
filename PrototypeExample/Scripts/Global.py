@@ -1,0 +1,2 @@
+Mode = None
+Winner = None

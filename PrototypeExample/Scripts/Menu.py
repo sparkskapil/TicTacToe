@@ -13,8 +13,6 @@ class MenuButton(Scriptable):
             self.AddOnClickListener(button, Event(self.onButtonClick, button))
             self.AddOnHoverListener(button, StateEvent(
                 self.onButtonHover, self.Entity))
-        self.updateCount = 0
-        self.hoverCount = 0
 
     def Update(self):
         pass

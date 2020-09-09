@@ -21,18 +21,23 @@ class Project:
             os.mkdir(projectFolder)
 
         projectFile = os.path.join(projectFolder, (name + EXTENSION))
-        if not os.path.exists(projectFile):
+        if os.path.exists(projectFile):
             raise Exception("The path already contains a project")
 
         # Create Index file with the project Name
         with open(projectFile, 'w') as writer:
             json.dump(dict(), writer)
+            
+        return projectFile
 
     def __init__(self, path):
         self.ProjectFile = None
         self.Setup(path)
 
     def Setup(self, path):
+        self.SceneManager = SceneManager()
+        if path is None:
+            return None
         if os.path.isfile(path):
             self.ProjectFile = path
             path = os.path.split(path)[0]
@@ -41,7 +46,6 @@ class Project:
         if self.ProjectFile is None:
             self.ProjectFile = os.path.join(
                 self.ProjectDir, (self.ProjectName + EXTENSION))
-        self.SceneManager = SceneManager()
 
     def CreateNewScene(self, sceneName, location=None):
         scene = Scene()
@@ -64,6 +68,8 @@ class Project:
             json.dump(index, writer)
 
     def LoadProject(self):
+        if self.ProjectFile is None:
+            return None
         index = None
         with open(self.ProjectFile, 'r') as reader:
             index = json.load(reader)
@@ -82,7 +88,7 @@ class Project:
             self.SceneManager.AddScene(sceneName, scene)
 
     def GetSurface(self):
-        if self.SceneManager and self.SceneManager.HasScene():
+        if self.SceneManager:
             return self.SceneManager.Surface
         return None
 

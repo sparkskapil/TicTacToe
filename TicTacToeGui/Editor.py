@@ -8,7 +8,7 @@ from ECS.Components import Vector, TransformComponent, TagComponent, LabelCompon
 from ECS.Components import SpriteComponent, ButtonComponent, ScriptComponent
 from ECS.Systems.BoundsComputingSystem import BoundsComputingSystem
 
-from ImGuiCustomControls import FileSystem, OpenFileDialog, SaveFileDialog
+from ImGuiCustomControls import FileSystem, OpenFileDialog, SaveFileDialog, CreateProjectDialog
 
 from ScriptInspector import ModuleInfo
 from Project import Project
@@ -56,6 +56,7 @@ class Editor:
         self.Project = Project(projectPath)
         self.updateViewPortSize(
             int(self.WindowSize[0]), int(self.WindowSize[1]))
+
         self.Project.LoadProject()
 
         self.Running = True
@@ -293,6 +294,8 @@ class Editor:
         self.Project.SceneManager.GetScene().CloneEntity(entity)
 
     def __imguiDrawContextMenu(self, entity=None):
+        if not self.Project.SceneManager.HasScene():
+            return None
         options = list()
         options.append(("Create Entity ",
                         self.Project.SceneManager.GetScene().CreateEntity))
@@ -354,6 +357,34 @@ class Editor:
             if not self.GameMode and not self.SelectedEntity is None:
                 self.SelectionRenderer.DrawRectForEntity(self.SelectedEntity)
 
+    def __onCreateNewProject(self, projectName, projectDir):
+        projectFile = Project.CreateNewProject(projectDir, projectName)
+        self.__onOpenProjectFile(projectFile)
+    
+    def __onOpenProjectFile(self, projectFile):
+        self.Project.ProjectFile = projectFile
+        self.Project.LoadProject()
+        
+    def __imguiDrawProjectDialog(self):
+        opened, _ = imgui.begin_popup_modal("Project Dialog")
+        if opened:
+            if imgui.button("Create New Project"):
+                CreateProjectDialog.ShowDialog(
+                    self.__onCreateNewProject, None)
+            CreateProjectDialog.DrawDialog()
+            
+            if imgui.button("Open Existing Project"):
+                OpenFileDialog.ShowDialog(self.__onOpenProjectFile, None)
+            OpenFileDialog.DrawDialog()
+            
+            if FileSystem.IsValidFile(self.Project.ProjectFile):
+                imgui.close_current_popup()
+            imgui.end_popup()
+
+        if self.Project.ProjectFile is None:
+            imgui.open_popup("Project Dialog")
+            self.Project.ProjectFile = ""
+
     def OnImGuiRender(self):
         self.OnApplicationResize()
         imgui.new_frame()
@@ -361,6 +392,7 @@ class Editor:
         openFileDialogState = False
         saveFileDialogState = False
         createNewScene = False
+
         if imgui.begin_main_menu_bar():
             if imgui.begin_menu("File", True):
 
@@ -414,7 +446,7 @@ class Editor:
                     self.Project.ResetScenes()
                 imgui.end_menu()
 
-            if imgui.begin_menu("Scene", self.Project.SceneManager.HasScene()):
+            if imgui.begin_menu("Scene"):
                 clickedCreateScene, _ = imgui.menu_item(
                     "Create Scene", None, False, True)
                 if clickedCreateScene:
@@ -459,7 +491,7 @@ class Editor:
 
         saveFileDialogState = False
         SaveFileDialog.DrawDialog()
-
+        self.__imguiDrawProjectDialog()
         # Create texture from Pygame Surface
         if self.Texture:
             GLHelpers.DeleteTexture(self.Texture)
@@ -542,7 +574,9 @@ class Editor:
     def Run(self):
         while self.Running:
             _ = self.Clock.tick(60)
-            self.Project.GetSurface().fill((51, 51, 51))
+            surface = self.Project.GetSurface()
+            if surface:
+                surface.fill((51, 51, 51))
             self.OnRender()
             self.OnEvent()
             self.OnImGuiRender()
@@ -551,8 +585,8 @@ class Editor:
 
 
 def main():
-    editor = Editor(
-        "C:\\Users\\Kapil\\Documents\\PrototypeExample\\PrototypeExample.ptproj")
+    # "..\\PrototypeExample\\PrototypeExample.ptproj"
+    editor = Editor(None)
     editor.updateViewPortSize(500, 500)
     editor.Run()
 

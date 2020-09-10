@@ -69,6 +69,10 @@ class FileSystem:
     @staticmethod
     def JoinPath(*args):
         return os.path.join(*args)
+    
+    @staticmethod
+    def IsEmpty(directory):
+        return not os.listdir(directory)
 
 
 BUTTON_WIDTH = 50
@@ -180,6 +184,55 @@ class InputTextControl:
         _, self.Text = imgui.input_text("", self.Text, 256)
         imgui.pop_item_width()
 
+        offset = imgui.get_window_width() - 2 * BUTTON_WIDTH - 20
+        imgui.set_cursor_pos_x(offset)
+
+        if imgui.button(self.ButtonOneLabel, BUTTON_WIDTH, BUTTON_HEIGHT):
+            if self.ButtonOneClickEvent:
+                self.ButtonOneClickEvent()
+
+        imgui.same_line()
+
+        if imgui.button(self.ButtonTwoLabel, BUTTON_WIDTH, BUTTON_HEIGHT):
+            if self.ButtonTwoClickEvent:
+                self.ButtonTwoClickEvent()
+
+class TwoInputTextControl:
+    def __init__(self, textLabel: str, btnLabels: tuple = None, btnEvents: tuple = None):
+        self.TextOne = ""
+        self.TextTwo = ""
+        self.TextLabelOne = textLabel[0]
+        self.TextLabelTwo = textLabel[1]
+        self.Reset()
+        if btnEvents:
+            self.ButtonOneClickEvent = btnEvents[0]
+            self.ButtonTwoClickEvent = btnEvents[1]
+
+        if btnLabels:
+            self.ButtonOneLabel = btnLabels[0]
+            self.ButtonTwoLabel = btnLabels[1]
+
+    def Reset(self):
+        self.TextOne = ""
+        self.TextTwo = ""
+        self.ButtonOneClickEvent = None
+        self.ButtonTwoClickEvent = None
+
+    def SetEvents(self, eventOne=None, eventTwo=None):
+        self.ButtonOneClickEvent = eventOne
+        self.ButtonTwoClickEvent = eventTwo
+
+    def DrawControl(self):
+        imgui.text(self.TextLabelOne)
+        imgui.push_item_width(-1)
+        _, self.TextOne = imgui.input_text(self.TextLabelOne, self.TextOne, 256)
+        imgui.pop_item_width()
+        
+        imgui.text(self.TextLabelTwo)
+        imgui.push_item_width(-1)
+        _, self.TextTwo = imgui.input_text(self.TextLabelTwo, self.TextTwo, 256)
+        imgui.pop_item_width()
+        
         offset = imgui.get_window_width() - 2 * BUTTON_WIDTH - 20
         imgui.set_cursor_pos_x(offset)
 
@@ -313,5 +366,77 @@ class SaveFileDialog:
                 filepath = SaveFileDialog.InputControl.Text
                 FileSystem.DeleteFile(filepath)
                 imgui.close_current_popup()
+
+            imgui.end_popup()
+
+class CreateProjectDialog:
+    """
+    Custom control handling Creating Game Project.
+    """
+    OnSaveEvent = None
+    OnCloseEvent = None
+    InputControl = None
+    NotEmptyDirectory = False
+    Message = False
+    IsOpened = False
+    @staticmethod
+    def OnSave():
+        projectName = CreateProjectDialog.InputControl.TextOne
+        projectPath = CreateProjectDialog.InputControl.TextTwo
+        if not FileSystem.IsValidDirectory(projectPath):
+            CreateProjectDialog.Message = True
+        projectRoot = FileSystem.JoinPath(projectPath, projectName)
+        if FileSystem.IsValidDirectory(projectRoot) and not FileSystem.IsEmpty(projectRoot):
+            CreateProjectDialog.NotEmptyDirectory = True
+        else:
+            CreateProjectDialog.OnSaveEvent(projectName, projectPath)
+            CreateProjectDialog.__disposeDialog()
+
+    @staticmethod
+    def OnClose():
+        if CreateProjectDialog.OnCloseEvent:
+            CreateProjectDialog.OnCloseEvent()
+        CreateProjectDialog.__disposeDialog()
+
+    @staticmethod
+    def __disposeDialog():
+        CreateProjectDialog.InputControl.Reset()
+        imgui.close_current_popup()
+        CreateProjectDialog.IsOpened = False
+
+    @staticmethod
+    def ShowDialog(onSave: callable, onClose: callable = None, DefaultDirectory: str = ""):
+        CreateProjectDialog.IsOpened = True
+        CreateProjectDialog.OnSaveEvent = onSave
+        CreateProjectDialog.OnCloseEvent = onClose
+
+        if CreateProjectDialog.InputControl is None:
+            CreateProjectDialog.InputControl = TwoInputTextControl(
+                ("Project Name", "Project Directory"), ("CREATE PROJECT", "CANCEL"))
+        CreateProjectDialog.InputControl.TextOne = "New Project"
+        CreateProjectDialog.InputControl.TextTwo = DefaultDirectory
+        CreateProjectDialog.InputControl.SetEvents(
+            CreateProjectDialog.OnSave, CreateProjectDialog.OnClose)
+
+        imgui.open_popup("Create Project")
+        imgui.set_next_window_size(400, 200)
+
+    @staticmethod
+    def DrawDialog():
+        popupFlags = imgui.WINDOW_NO_SCROLLBAR | imgui.WINDOW_NO_RESIZE
+        if imgui.begin_popup_modal("Create Project", None, popupFlags)[0]:
+            CreateProjectDialog.InputControl.DrawControl()
+
+            if CreateProjectDialog.Message:
+                MessageBox.ShowMessageBox(
+                    "FILE ERROR", "The path for file is invalid.")
+            CreateProjectDialog.Message = False
+
+            if CreateProjectDialog.NotEmptyDirectory:
+                msg = "The directory specified for the Project is not empty."
+                MessageBox.ShowMessageBox("NON EMPTY DIRECTORY", msg)
+            CreateProjectDialog.NotEmptyDirectory = False
+            
+            MessageBox.DrawMessageBox()
 
             imgui.end_popup()

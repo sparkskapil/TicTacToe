@@ -71,12 +71,12 @@ class Project:
         if self.ProjectFile is None:
             return None
         index = None
+        
         with open(self.ProjectFile, 'r') as reader:
             index = json.load(reader)
+        self.ProjectDir = os.path.split(self.ProjectFile)[0]
+        
         if not index or len(index) == 0:
-            scene = Scene()
-            scene.CreateEntity()
-            self.SceneManager.AddScene("MainScene", scene)
             return
 
         for sceneName, relPath in index.items():

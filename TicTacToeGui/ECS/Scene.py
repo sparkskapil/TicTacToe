@@ -96,6 +96,10 @@ class Scene:
         '''
 
     def SaveScene(self, filepath, binary=False):
+        directory = os.path.split(filepath)[0]
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        
         if not filepath.endswith('.pts'):
             filepath = filepath + '.pts'
 

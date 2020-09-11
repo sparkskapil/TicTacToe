@@ -59,6 +59,14 @@ class FileSystem:
     @staticmethod
     def GetFileName(filepath):
         return filepath.replace('/',"\\").split('\\')[-1].split('.')[0]
+    
+    @staticmethod
+    def GetFileNameWithExtension(filepath):
+        return filepath.replace('/',"\\").split('\\')[-1]
+    
+    @staticmethod
+    def GetDirectoryName(directory):
+        return directory.replace('/',"\\").split('\\')[-1]
         
     @staticmethod
     def DeleteFile(filepath):

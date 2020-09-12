@@ -2,6 +2,7 @@
 This module contains custom reusable imgui controls.
 """
 import os
+import platform
 import imgui
 
 
@@ -49,25 +50,25 @@ class FileSystem:
         return os.path.exists(path) and os.path.isfile(path)
 
     @staticmethod
-    def IsValidDirectory(directory): 
+    def IsValidDirectory(directory):
         return os.path.exists(directory) and os.path.isdir(directory)
 
     @staticmethod
     def GetFileExtension(filepath):
         return os.path.splitext(filepath)[1]
-    
+
     @staticmethod
     def GetFileName(filepath):
-        return filepath.replace('/',"\\").split('\\')[-1].split('.')[0]
-    
+        return filepath.replace('/', "\\").split('\\')[-1].split('.')[0]
+
     @staticmethod
     def GetFileNameWithExtension(filepath):
-        return filepath.replace('/',"\\").split('\\')[-1]
-    
+        return filepath.replace('/', "\\").split('\\')[-1]
+
     @staticmethod
     def GetDirectoryName(directory):
-        return directory.replace('/',"\\").split('\\')[-1]
-        
+        return directory.replace('/', "\\").split('\\')[-1]
+
     @staticmethod
     def DeleteFile(filepath):
         if not FileSystem.IsValidFile(filepath):
@@ -77,10 +78,17 @@ class FileSystem:
     @staticmethod
     def JoinPath(*args):
         return os.path.join(*args)
-    
+
     @staticmethod
     def IsEmpty(directory):
         return not os.listdir(directory)
+
+    @staticmethod
+    def CopyFile(source, destination):
+        if platform.system() == "Windows":
+            os.system(f'copy {source} {destination}')
+        else:
+            os.system(f'cp {source} {destination}')
 
 
 BUTTON_WIDTH = 50
@@ -205,6 +213,7 @@ class InputTextControl:
             if self.ButtonTwoClickEvent:
                 self.ButtonTwoClickEvent()
 
+
 class TwoInputTextControl:
     def __init__(self, textLabel: str, btnLabels: tuple = None, btnEvents: tuple = None):
         self.TextOne = ""
@@ -233,14 +242,16 @@ class TwoInputTextControl:
     def DrawControl(self):
         imgui.text(self.TextLabelOne)
         imgui.push_item_width(-1)
-        _, self.TextOne = imgui.input_text(self.TextLabelOne, self.TextOne, 256)
+        _, self.TextOne = imgui.input_text(
+            self.TextLabelOne, self.TextOne, 256)
         imgui.pop_item_width()
-        
+
         imgui.text(self.TextLabelTwo)
         imgui.push_item_width(-1)
-        _, self.TextTwo = imgui.input_text(self.TextLabelTwo, self.TextTwo, 256)
+        _, self.TextTwo = imgui.input_text(
+            self.TextLabelTwo, self.TextTwo, 256)
         imgui.pop_item_width()
-        
+
         offset = imgui.get_window_width() - 2 * BUTTON_WIDTH - 20
         imgui.set_cursor_pos_x(offset)
 
@@ -377,6 +388,7 @@ class SaveFileDialog:
 
             imgui.end_popup()
 
+
 class CreateProjectDialog:
     """
     Custom control handling Creating Game Project.
@@ -444,7 +456,7 @@ class CreateProjectDialog:
                 msg = "The directory specified for the Project is not empty."
                 MessageBox.ShowMessageBox("NON EMPTY DIRECTORY", msg)
             CreateProjectDialog.NotEmptyDirectory = False
-            
+
             MessageBox.DrawMessageBox()
 
             imgui.end_popup()

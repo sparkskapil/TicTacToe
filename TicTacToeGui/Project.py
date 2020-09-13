@@ -2,9 +2,10 @@
 This module contains the project class
 """
 import os
+import json
 from SceneManager import SceneManager
 from ECS.Scene import Scene
-import json
+from VirtualFileSystem import VirtualFileSystem
 
 EXTENSION = ".ptproj"
 
@@ -32,6 +33,8 @@ class Project:
 
     def __init__(self, path):
         self.ProjectFile = None
+        self.ProjectDir = None
+        self.VFS = None
         self.Setup(path)
 
     def Setup(self, path):
@@ -46,6 +49,7 @@ class Project:
         if self.ProjectFile is None:
             self.ProjectFile = os.path.join(
                 self.ProjectDir, (self.ProjectName + EXTENSION))
+        self.VFS = VirtualFileSystem(self.ProjectDir)
 
     def CreateNewScene(self, sceneName, location=None):
         scene = Scene()
@@ -75,6 +79,7 @@ class Project:
         with open(self.ProjectFile, 'r') as reader:
             index = json.load(reader)
         self.ProjectDir = os.path.split(self.ProjectFile)[0]
+        self.VFS = VirtualFileSystem(self.ProjectDir)
         
         if not index or len(index) == 0:
             return

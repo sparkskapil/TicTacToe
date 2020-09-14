@@ -20,6 +20,7 @@ class Scene:
         self.SceneChanged = True
         self.SceneLocation = ""
         self.SceneManager = None
+        self.VFS = None
         self.Surface = None
 
     def GetRegistry(self):
@@ -146,6 +147,9 @@ class Scene:
 
     def SetSceneManager(self, manager):
         self.SceneManager = manager
-
+        
+    def SetVFS(self, vfs):
+        self.VFS = vfs
+        
     def GetSceneManager(self):
         return self.SceneManager

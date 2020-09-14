@@ -50,6 +50,7 @@ class Project:
             self.ProjectFile = os.path.join(
                 self.ProjectDir, (self.ProjectName + EXTENSION))
         self.VFS = VirtualFileSystem(self.ProjectDir)
+        self.SceneManager.SetVFS(self.VFS)
 
     def CreateNewScene(self, sceneName, location=None):
         scene = Scene()
@@ -80,6 +81,7 @@ class Project:
             index = json.load(reader)
         self.ProjectDir = os.path.split(self.ProjectFile)[0]
         self.VFS = VirtualFileSystem(self.ProjectDir)
+        self.SceneManager.SetVFS(self.VFS)
         
         if not index or len(index) == 0:
             return

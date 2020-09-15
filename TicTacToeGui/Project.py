@@ -45,7 +45,7 @@ class Project:
             self.ProjectFile = path
             path = os.path.split(path)[0]
         self.ProjectName = os.path.split(path)[1]
-        self.ProjectDir = path
+        self.ProjectDir = os.path.abspath(path)
         if self.ProjectFile is None:
             self.ProjectFile = os.path.join(
                 self.ProjectDir, (self.ProjectName + EXTENSION))
@@ -80,6 +80,7 @@ class Project:
         with open(self.ProjectFile, 'r') as reader:
             index = json.load(reader)
         self.ProjectDir = os.path.split(self.ProjectFile)[0]
+        self.ProjectDir = os.path.abspath(self.ProjectDir)
         self.VFS = VirtualFileSystem(self.ProjectDir)
         self.SceneManager.SetVFS(self.VFS)
         

@@ -1,8 +1,9 @@
-from os import system, name
+from os import system, name, getcwd
 from copy import deepcopy
 from enum import Enum
 from threading import Thread
 import socket
+import json
 
 
 def ClearConsole():
@@ -23,6 +24,9 @@ class GameModes(Enum):
     # Player Vs Player over Network
     Network = 3
 
+    # Computer Alpha Beta Pruning
+    ComputerV2 = 4
+
 
 class PlayersFactory:
     @staticmethod
@@ -30,6 +34,8 @@ class PlayersFactory:
         if GameMode == GameModes.PvP:
             return [Player('X'),  Player('O')]
         if GameMode == GameModes.Computer:
+            return [Player('X'), AIPlayer('O', 'X')]
+        if GameMode == GameModes.ComputerV2:
             return [Player('X'), AIPlayerFast('O', 'X')]
         if GameMode == GameModes.Network:
             player = NetworkPlayer('localhost', 5000)
@@ -60,6 +66,9 @@ class Grid:
             self.grid[row][col] = symbol
             return True
         return False
+
+    def ResetCell(self, row, col):
+        self.grid[row][col] = 0
 
     def CheckWin(self):
         for i in range(3):
@@ -101,37 +110,59 @@ class Grid:
                 cellValues += str(self.grid[i][j]) + ', '
         return cellValues
 
+    def toNum(self):
+        num = 0
+        for i in range(0, 3):
+            for j in range(0, 3):
+                if self.grid[i][j] == 0:
+                    num += 0
+                elif self.grid[i][j] == 'X':
+                    num += 1
+                elif self.grid[i][j] == 'O':
+                    num += 2
+                num *= 10
 
 # Bot with Simple Mini Max Algorithm
+
+
 class AIPlayer:
     def __init__(self, symbol, opponent):
         self.symbol = symbol
         self.opponent = opponent
+        with open('aistates.json') as reader:
+            self.Scores = json.load(reader)
 
     def Score(self, grid, maximize):
         if grid.CheckWin():
             return -1 if maximize else 1
         if grid.CheckTie():
             return 0
+        state = grid.toNum()
+        if state in self.Scores.keys():
+            return self.Scores[state]
 
-        scores = []
-        minScore = 100
         maxScore = -100
-        for i in range(3):
-            for j in range(3):
-                if grid.grid[i][j] == 0:
-                    node = deepcopy(grid)
-                    if maximize:
-                        node.SetCell(i, j, self.symbol)
-                    else:
-                        node.SetCell(i, j, self.opponent)
-                    score = self.Score(node, not maximize)
-                    scores.append(score)
+        minScore = 100
+        for cell in range(0, 9):
+            i = cell // 3
+            j = cell % 3
+            status = False
+            if maximize:
+                status = grid.SetCell(i, j, self.symbol)
+            else:
+                status = grid.SetCell(i, j, self.opponent)
+            if not status:
+                continue
+            score = self.Score(grid, not maximize)
+            if score > maxScore:
+                maxScore = score
+            if score < minScore:
+                minScore = score
+            grid.ResetCell(i, j)
 
         if maximize:
-            return max(scores)
-        else:
-            return min(scores)
+            return maxScore
+        return minScore
 
     def MiniMax(self, grid):
         scores = {}
@@ -139,17 +170,22 @@ class AIPlayer:
             for j in range(3):
                 if not grid.grid[i][j] == 0:
                     continue
-                node = deepcopy(grid)
-                node.SetCell(i, j, self.symbol)
-                score = self.Score(node, False)
+                grid.SetCell(i, j, self.symbol)
+                score = self.Score(grid, False)
+                grid.ResetCell(i, j)
                 cell = i*3 + j + 1
                 scores[cell] = score
         return max(scores, key=scores.get)
 
     def GetCell(self, grid, game=None):
-        cell = self.MiniMax(grid)
-        if game != None:
-            game.TakeTurn(cell)
+        if not game:
+            return -1
+        if game.Finished:
+            game.Busy = False
+            return -1
+        gameState = deepcopy(grid)
+        cell = self.MiniMax(gameState)
+        game.TakeTurn(cell)
         return int(cell)
 
 
@@ -159,36 +195,42 @@ class AIPlayerFast:
         self.symbol = symbol
         self.opponent = opponent
 
-    def Score(self, grid, maximize, alpha=[-1000], beta=[1000]):
+    def Score(self, grid, maximize, depth, alpha=[-1000], beta=[1000]):
         if grid.CheckWin():
-            return -1 if maximize else 1
+            return -10 + depth if maximize else 10 - depth
         if grid.CheckTie():
             return 0
 
-        scores = []
+        minScore = 100
+        maxScore = -100
         for i in range(3):
             for j in range(3):
-                if grid.grid[i][j] == 0:
-                    node = deepcopy(grid)
-                    if maximize:
-                        node.SetCell(i, j, self.symbol)
-                    else:
-                        node.SetCell(i, j, self.opponent)
-                    score = self.Score(node, not maximize)
-                    scores.append(score)
+                if grid.grid[i][j] != 0:
+                    continue
 
-                    if maximize:
-                        alpha[0] = max(alpha[0], score)
-                    else:
-                        beta[0] = min(beta[0], score)
+                if maximize:
+                    grid.SetCell(i, j, self.symbol)
+                else:
+                    grid.SetCell(i, j, self.opponent)
+                score = self.Score(grid, not maximize, depth+1, alpha, beta)
+                grid.ResetCell(i, j)
+                if score > maxScore:
+                    maxScore = score
+                if score < minScore:
+                    minScore = score
 
-                    if beta[0] < alpha[0]:
-                        break
+                if maximize:
+                    alpha[0] = max(alpha[0], score)
+                else:
+                    beta[0] = min(beta[0], score)
+
+                if beta[0] <= alpha[0]:
+                    break
 
         if maximize:
-            return max(scores)
+            return maxScore
         else:
-            return min(scores)
+            return minScore
 
     def MiniMax(self, grid):
         scores = {}
@@ -198,15 +240,21 @@ class AIPlayerFast:
                     continue
                 node = deepcopy(grid)
                 node.SetCell(i, j, self.symbol)
-                score = self.Score(node, False)
+                score = self.Score(node, False, 1)
                 cell = i*3 + j + 1
                 scores[cell] = score
         return max(scores, key=scores.get)
 
     def GetCell(self, grid, game=None):
-        cell = self.MiniMax(grid)
-        if game != None:
-            game.TakeTurn(cell)
+        if not game:
+            return -1
+        if game.Finished:
+            game.Busy = False
+            return -1
+        game.Busy = True
+        gameState = deepcopy(grid)
+        cell = self.MiniMax(gameState)
+        game.TakeTurn(cell)
         return int(cell)
 
 
@@ -267,6 +315,8 @@ class Game:
         self.Player = self.Players[self.PlayerIndex]
 
     def DrawGrid(self):
+        while(self.Busy):
+            pass
         ClearConsole()
         self.Grid.PrintGrid()
 
@@ -285,7 +335,6 @@ class Game:
     def HandlePlayersOnSwitch(self):
         if isinstance(self.Player, AIPlayerFast) or isinstance(self.Player, AIPlayer) or isinstance(self.Player, NetworkPlayer):
             thread = Thread(target=self.Player.GetCell, args=(self.Grid, self))
-            self.Busy = True
             thread.start()
 
     def IsBusy(self):
@@ -293,7 +342,7 @@ class Game:
 
     def TakeTurn(self, cell):
         self.Busy = False
-        if not 0 < cell < 10:
+        if self.Finished or not 0 < cell < 10:
             return False
 
         row = (cell-1) // 3
@@ -326,7 +375,6 @@ class Game:
     def StartConsoleGame(self):
         while not self.Finished:
             self.DrawGrid()
-
             cell = self.Player.GetCell(self.Grid)
             self.TakeTurn(cell)
 
@@ -336,7 +384,7 @@ class Game:
             print('Game Tied !!!')
 
         else:
-            print('Player ({}) Wins'.format(self.Player.symbol))
+            print('Player ({}) Wins'.format(self.Winner.symbol))
 
 
 if __name__ == "__main__":

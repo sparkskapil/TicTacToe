@@ -208,14 +208,23 @@ class Editor:
     def __imguiSetScriptInComponent(self, component, script):
         if not component.Module == "" and component.Module in self.Scripts.keys():
             self.Scripts.pop(component.Module)
-        component.Module = script
-        self.Scripts[script] = ModuleInfo(script)
+        projectRoot = FileSystem.GetAbsolutePath(self.Project.GetVFS().Root)
+        if not projectRoot in script:
+            print(f"{FileSystem.GetFileName(component.Module)} Script not in project folder. Import script to project before assigning to compoenent.")
+            return
+        component.Module = script.replace(
+            '/', '\\').replace(projectRoot+"\\", "")
+        self.Scripts[component.Module] = ModuleInfo(script)
 
     def __imguiDrawScriptComponent(self, component):
         module = component.Module
 
         if not module == "" and not module in self.Scripts.keys():
-            self.Scripts[module] = ModuleInfo(module)
+            modulePath = module
+            if not FileSystem.IsValidFile(modulePath):
+                projectRoot = FileSystem.GetAbsolutePath(self.Project.GetVFS().Root)
+                modulePath = FileSystem.JoinPath(projectRoot, modulePath)
+            self.Scripts[module] = ModuleInfo(modulePath)
 
         if imgui.button("SELECT MODULE"):
             OpenFileDialog.ShowDialog(
@@ -225,7 +234,7 @@ class Editor:
         if module in self.Scripts.keys():
             imgui.text("MODULE DIR")
             imgui.same_line(spacing=10)
-            imgui.text_wrapped(self.Scripts[module].Location)
+            imgui.text_wrapped(module)
             imgui.text("MODULE NAME")
             imgui.same_line(spacing=10)
             imgui.text_wrapped(self.Scripts[module].Name)
@@ -360,11 +369,11 @@ class Editor:
     def __onCreateNewProject(self, projectName, projectDir):
         projectFile = Project.CreateNewProject(projectDir, projectName)
         self.__onOpenProjectFile(projectFile)
-    
+
     def __onOpenProjectFile(self, projectFile):
         self.Project.ProjectFile = projectFile
         self.Project.LoadProject()
-        
+
     def __imguiDrawProjectDialog(self):
         opened, _ = imgui.begin_popup_modal("Project Dialog")
         if opened:
@@ -372,11 +381,11 @@ class Editor:
                 CreateProjectDialog.ShowDialog(
                     self.__onCreateNewProject, None)
             CreateProjectDialog.DrawDialog()
-            
+
             if imgui.button("Open Existing Project"):
                 OpenFileDialog.ShowDialog(self.__onOpenProjectFile, None)
             OpenFileDialog.DrawDialog()
-            
+
             if FileSystem.IsValidFile(self.Project.ProjectFile):
                 imgui.close_current_popup()
             imgui.end_popup()

@@ -19,11 +19,11 @@ class GameScript(Scriptable):
         else:
             self.Game = Game(GameModes.PvP)
 
-        self.xSprite = SpriteComponent("T3X_BLACK.png")
+        self.xSprite = SpriteComponent("Sprites/T3X_BLACK.png")
         self.xSprite.width = 100
         self.xSprite.mode = SpriteComponent.SpriteMode.RespectAspect
 
-        self.oSprite = SpriteComponent("T3O_BLACK.png")
+        self.oSprite = SpriteComponent("Sprites/T3O_BLACK.png")
         self.oSprite.width = 100
         self.oSprite.mode = SpriteComponent.SpriteMode.RespectAspect
 

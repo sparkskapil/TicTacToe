@@ -1,3 +1,4 @@
+import os
 import pygame
 from ECS.Components import TransformComponent, SpriteComponent
 
@@ -6,6 +7,7 @@ class SpriteRenderSystem:
     def __init__(self, scene, Surface=None):
         self.Reg = scene.Reg
         self.Entities = scene.Entities
+        self.VFS = scene.GetVFS()
         if not Surface:
             self.Surface = scene.Surface
         self.Cache = dict()
@@ -40,7 +42,7 @@ class SpriteRenderSystem:
             scaleSprite = True
             
         if scaleSprite:
-            self.Cache[sprite] = pygame.image.load(sprite.image)
+            self.__loadSprite(sprite)
             self.Cache[sprite] = pygame.transform.scale(
                 self.Cache[sprite], (sprite.width, sprite.height))
 
@@ -56,11 +58,18 @@ class SpriteRenderSystem:
             isOffscreen = True
 
         return not isOffscreen
-
+    
+    def __loadSprite(self, sprite):
+        spritePath = os.path.join(self.VFS.Root, sprite.image)
+        if not os.path.isfile(spritePath):
+            return False
+        self.Cache[sprite] = pygame.image.load(spritePath)
+        return True
+            
     def PreLoadSprites(self):
         sprites = self.Reg.GetComponentsByType(SpriteComponent)
         for sprite, _ in sprites:
-            self.Cache[sprite] = pygame.image.load(sprite.image)
+            self.__loadSprite(sprite)
 
     def RenderSpriteComponents(self):
         sprites = self.Reg.GetComponentsByType(SpriteComponent)
@@ -68,7 +77,9 @@ class SpriteRenderSystem:
             if sprite.image == "":
                 continue
             if not sprite in self.Cache.keys():
-                self.Cache[sprite] = pygame.image.load(sprite.image)
+                if not self.__loadSprite(sprite):
+                    continue
+            
             self.__transformSprite(sprite)
             transform = self.Entities[ent].GetComponent(TransformComponent)
 

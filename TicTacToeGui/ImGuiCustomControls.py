@@ -23,7 +23,7 @@ class FileSystem:
         Returns contents of the specified directory.
         """
         if not os.path.exists(directory):
-            raise ValueError("The directory does not exist.")
+            raise ValueError(f"The directory does not exist. {directory}")
         if not os.path.isdir(directory):
             raise ValueError(
                 "Parameter for directory is not an actual directory.")

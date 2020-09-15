@@ -586,7 +586,7 @@ class Editor:
 
 def main():
     # "..\\PrototypeExample\\PrototypeExample.ptproj"
-    editor = Editor(None)
+    editor = Editor("..\\PrototypeExample\\PrototypeExample.ptproj")
     editor.updateViewPortSize(500, 500)
     editor.Run()
 

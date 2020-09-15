@@ -98,6 +98,9 @@ class Project:
         if self.SceneManager:
             return self.SceneManager.Surface
         return None
+    
+    def GetVFS(self):
+        return self.VFS
 
     def GetCurrentScene(self):
         return self.SceneManager.CurrentScene

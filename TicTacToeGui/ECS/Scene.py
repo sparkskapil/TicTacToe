@@ -150,6 +150,9 @@ class Scene:
         
     def SetVFS(self, vfs):
         self.VFS = vfs
+                
+    def GetVFS(self):
+        return self.VFS
         
     def GetSceneManager(self):
         return self.SceneManager

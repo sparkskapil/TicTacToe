@@ -1,3 +1,4 @@
+import os
 from ECS.Components import LabelComponent, TransformComponent
 import pygame
 
@@ -6,15 +7,20 @@ class LabelRenderingSystem:
     def __init__(self, scene, Surface=None):
         self.Reg = scene.Reg
         self.Entities = scene.Entities
+        self.VFS = scene.GetVFS()
         if not Surface:
             self.Surface = scene.Surface
         self.Cache = dict()
 
     def __preloadFontForLabel(self, label):
         if not label.font or not self.Surface:
-            return
+            return False
+        fontPath = os.path.join(self.VFS.Root, label.font)
+        if not os.path.isfile(fontPath):
+            return False
         if not label in self.Cache.keys() or not self.Cache[label].get_ascent() == label.size:
-            self.Cache[label] = pygame.font.Font(label.font, label.size)
+            self.Cache[label] = pygame.font.Font(fontPath, label.size)
+        return True
 
     def PreloadFonts(self):
         labels = self.Reg.GetComponentsByType(LabelComponent)
@@ -27,8 +33,9 @@ class LabelRenderingSystem:
             if label.text == "" or label.font == "":
                 continue
             
-            self.__preloadFontForLabel(label)
-
+            if not self.__preloadFontForLabel(label):
+                continue
+            
             pos = self.Entities[entt].GetComponent(TransformComponent).position
             bgColor = label.background
             if not label.background is None and label.background[-1] == 255:

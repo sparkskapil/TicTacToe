@@ -122,9 +122,8 @@ class Grid:
                     num += 2
                 num *= 10
 
+
 # Bot with Simple Mini Max Algorithm
-
-
 class AIPlayer:
     def __init__(self, symbol, opponent):
         self.symbol = symbol

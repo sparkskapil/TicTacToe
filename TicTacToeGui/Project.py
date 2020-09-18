@@ -34,6 +34,7 @@ class Project:
     def __init__(self, path):
         self.ProjectFile = None
         self.ProjectDir = None
+        self.ProjectName = None
         self.VFS = None
         self.Setup(path)
 

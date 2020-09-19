@@ -15,7 +15,16 @@ class Scriptable:
         self.Reg = scene.Reg
         self.Surface = scene.Surface
         self.Entity = entity
-
+    def Setup(self):
+        """
+        Method to be implemented by scripts.
+        """
+        
+    def Update(self, timestep):
+        """
+        Method to be implemented by scripts.
+        """
+        
     def GetComponent(self, Typename):
         return self.Entity.GetComponent(Typename)
 

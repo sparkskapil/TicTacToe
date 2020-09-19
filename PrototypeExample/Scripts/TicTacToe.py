@@ -182,6 +182,7 @@ class AIPlayer:
         if game.Finished:
             game.Busy = False
             return -1
+        game.Busy = True
         gameState = deepcopy(grid)
         cell = self.MiniMax(gameState)
         game.TakeTurn(cell)
@@ -267,22 +268,21 @@ class NetworkPlayer:
             self.symbol = msg.decode('utf-8')
         else:
             self.symbol = symbol
-        print('# [LOG] Network Player created with symbol {}'.format(self.symbol))
 
     def GetCell(self, grid, game=None):
-        if not game.LastCell == -1:
-            print('# [LOG] Send current grid over network')
-            self.connection.sendall(str(game.LastCell).encode('utf-8'))
-        if game.Finished:
+        if not game:
             return -1
-        print('# [LOG] Waiting for network to send other players move')
+        if game.Finished:
+            game.Busy = False
+            return -1
+
+        if not game.LastCell == -1:
+            self.connection.sendall(str(game.LastCell).encode('utf-8'))
+
         # Get Players Turn
         msg = self.connection.recv(1024)
         cell = int(msg.decode('utf-8'))
-
-        print('# [LOG] Cell Value from other player received -> {}'.format(cell))
         if game != None and cell != -1:
-            print('# [LOG] Other player took turn on cell {}'.format(cell))
             game.TakeTurn(cell)
 
         return int(cell)

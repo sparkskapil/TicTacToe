@@ -19,6 +19,10 @@ class Finish(Scriptable):
             label.text = 'TIED'
             winner.GetComponent(TransformComponent).position.x = 100
         else:
+            winnerLabel = self.GetEntitiesByTag('WinnerLabel')[0]
+            label = winnerLabel.GetComponent(LabelComponent)
+            label.text = 'Winner'
+            
             winner = self.GetEntitiesByTag('Winner')[0]
             label = winner.GetComponent(LabelComponent)
             label.text = Global.Winner
@@ -28,7 +32,7 @@ class Finish(Scriptable):
 
         self.AddOnClickListener(button, Event(self.onMainMenuClick))
 
-    def Update(self):
+    def Update(self, timestep):
         pass
 
     def onMainMenuClick(self):

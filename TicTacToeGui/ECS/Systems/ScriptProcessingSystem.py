@@ -62,7 +62,7 @@ class ScriptProcessingSystem:
             self.Cache[script] = instance
         return True
 
-    def UpdateGameObjects(self):
+    def UpdateGameObjects(self, timestep):
         scripts = self.Reg.GetComponentsByType(ScriptComponent).copy()
         for script, ent in scripts:
             if script.Module == "" or script.Class == "":
@@ -70,7 +70,7 @@ class ScriptProcessingSystem:
             if self.__initializeScriptInstance(script, self.Entities[ent]):
                 pwd = os.getcwd()
                 os.chdir(self.__getModuleDir(script.Module))
-                self.Cache[script].Update()
+                self.Cache[script].Update(timestep)
                 os.chdir(pwd)
 
     def __del__(self):

@@ -359,7 +359,7 @@ class Editor:
                 self.SelectionRenderer = BoundsComputingSystem(
                     self.Project.SceneManager.CurrentScene, self.Project.GetSurface())
             if self.GameMode:
-                self.Project.SceneManager.Update()
+                self.Project.SceneManager.Update(self.Clock.get_time()/1000)
             self.Project.SceneManager.Render()
 
             # Selection should be rendered after the scene is rendered

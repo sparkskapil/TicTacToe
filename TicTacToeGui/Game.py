@@ -31,12 +31,12 @@ class GameLoader:
 
     def OnRender(self):
         if self.Project.SceneManager.HasScene():
-            self.Project.SceneManager.Update()
+            self.Project.SceneManager.Update(self.Clock.get_time()/1000)
             self.Project.SceneManager.Render()
 
     def Run(self):
         while self.Running:
-            _ = self.Clock.tick(60)
+            self.Clock.tick(60)
             surface = self.Project.GetSurface()
             if surface:
                 surface.fill((51, 51, 51))

@@ -33,7 +33,7 @@ class GameScript(Scriptable):
             self.AddOnClickListener(
                 component, Event(self.onButtonClick, entity))
 
-    def Update(self):
+    def Update(self, timestep):
         grid = self.Game.GetGrid()
         for rowIndex, row in enumerate(grid):
             for colIndex, item in enumerate(row):
@@ -67,7 +67,7 @@ class GameScript(Scriptable):
             self.SceneChangeTime -= 1
 
     def onButtonClick(self, entity):
-        cell = int(entity.GetComponent(TagComponent).name[-1])
         if self.Game.IsBusy():
             return
+        cell = int(entity.GetComponent(TagComponent).name[-1])
         self.Game.TakeTurn(cell)

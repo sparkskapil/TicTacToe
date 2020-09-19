@@ -73,10 +73,10 @@ class Scene:
         except Exception as e:
             print(e)
 
-    def OnUpdate(self):
+    def OnUpdate(self, timestep):
         try:
-            self.ScriptProcessor.UpdateGameObjects()
-            self.Update()
+            self.ScriptProcessor.UpdateGameObjects(timestep)
+            self.Update(timestep)
         except Exception as e:
             print(e)
 
@@ -91,7 +91,7 @@ class Scene:
         To be overridden by the derrived class
         '''
 
-    def Update(self):
+    def Update(self, timestep):
         '''
         To be overridden by the derrived class
         '''

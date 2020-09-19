@@ -183,6 +183,7 @@ class AIPlayer:
         if game.Finished:
             game.Busy = False
             return -1
+        game.Busy = True
         gameState = deepcopy(grid)
         cell = self.MiniMax(gameState)
         game.TakeTurn(cell)

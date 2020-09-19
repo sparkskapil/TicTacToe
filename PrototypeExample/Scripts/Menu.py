@@ -14,7 +14,7 @@ class MenuButton(Scriptable):
             self.AddOnHoverListener(button, StateEvent(
                 self.onButtonHover, self.Entity))
 
-    def Update(self):
+    def Update(self, timestep):
         pass
 
     def onButtonClick(self, button):

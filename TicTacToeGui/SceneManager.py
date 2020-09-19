@@ -42,8 +42,8 @@ class SceneManager:
     def Render(self):
         self.CurrentScene.OnRender()
 
-    def Update(self):
-        self.CurrentScene.OnUpdate()
+    def Update(self, timestep=0):
+        self.CurrentScene.OnUpdate(timestep)
 
     def Event(self, event):
         self.CurrentScene.OnEvent(event)

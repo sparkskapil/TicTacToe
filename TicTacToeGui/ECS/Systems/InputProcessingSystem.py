@@ -8,6 +8,8 @@ class InputProcessingSystem:
         self.Reg = scene.Reg
         self.Entities = scene.Entities
         self.Cache = dict()
+        self.Click = lambda: None
+        self.Hover = lambda x: None
 
     def AddOnClickListener(self, buttonComponent: ButtonComponent, event: callable):
         if not buttonComponent in self.Cache.keys():
@@ -23,40 +25,37 @@ class InputProcessingSystem:
         buttons = self.Reg.GetComponentsByType(ButtonComponent)
 
         for button, ent in buttons:
-            if not button.enabled:
-                continue
-            if not button in self.Cache.keys():
-                continue
-            isClickable = False
-            isHoverable = False
 
-            if 'click' in self.Cache[button].keys():
-                isClickable = True
-            if 'hover' in self.Cache[button].keys():
-                isHoverable = True
+            if not hasattr(event, "pos") or not button.enabled or not button in self.Cache.keys():
+                continue
 
-            if isClickable and not callable(self.Cache[button]['click']):
+
+            if 'click' not in self.Cache[button].keys():
+                self.Cache[button]['click'] = self.Click
+            if 'hover' not in self.Cache[button].keys():
+                self.Cache[button]['hover'] = [self.Hover, False]
+
+            if not callable(self.Cache[button]['click']):
                 print(f"Click Event not callable for button on entity {ent}")
-                isClickable = False
+                self.Cache[button]['click'] = self.Click
 
-            if isHoverable and not callable(self.Cache[button]['hover'][0]):
+            if not callable(self.Cache[button]['hover'][0]):
                 print(f"Hover Event not callable for button on entity {ent}")
-                isHoverable = False
+                self.Cache[button]['hover'] = [self.Hover, False]
 
             transform = self.Entities[ent].GetComponent(TransformComponent)
             btn = pygame.Rect(transform.position.x,
                               transform.position.y, button.width, button.height)
 
-            if isClickable and event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and btn.collidepoint(event.pos):
+            collidePoint = btn.collidepoint(event.pos)
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and collidePoint:
                 self.Cache[button]['click']()
 
-            if isHoverable:
-                if event.type == pygame.MOUSEMOTION and btn.collidepoint(event.pos):
-                    self.Cache[button]['hover'][1] = True
+            if event.type == pygame.MOUSEMOTION and collidePoint:
+                self.Cache[button]['hover'][1] = True
 
-                if event.type == pygame.MOUSEMOTION and not btn.collidepoint(event.pos):
-                    self.Cache[button]['hover'][1] = False
+            if event.type == pygame.MOUSEMOTION and not collidePoint:
+                self.Cache[button]['hover'][1] = False
 
-                state = self.Cache[button]['hover'][1]
-                self.Cache[button]['hover'][0](state)
-                
+            state = self.Cache[button]['hover'][1]
+            self.Cache[button]['hover'][0](state)

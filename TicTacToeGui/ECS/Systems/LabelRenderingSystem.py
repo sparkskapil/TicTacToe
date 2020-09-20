@@ -11,6 +11,7 @@ class LabelRenderingSystem:
         if not Surface:
             self.Surface = scene.Surface
         self.Cache = dict()
+        self.SurfaceCache = dict()
 
     def __preloadFontForLabel(self, label):
         if not label.font or not self.Surface:
@@ -32,18 +33,21 @@ class LabelRenderingSystem:
         for label, entt in labels:
             if label.text == "" or label.font == "":
                 continue
-            
+
             if not self.__preloadFontForLabel(label):
                 continue
-            
+
             pos = self.Entities[entt].GetComponent(TransformComponent).position
             bgColor = label.background
             if not label.background is None and label.background[-1] == 255:
                 bgColor = None
 
-            text = self.Cache[label].render(
-                label.text, True, label.color, bgColor)
+            lblHash = hash((label.text, label.color, label.font, label.background))
+            if lblHash not in self.SurfaceCache.keys():
+                self.SurfaceCache[lblHash] = self.Cache[label].render(
+                    label.text, True, label.color, bgColor)
 
+            text = self.SurfaceCache[lblHash]
             textRect = text.get_rect()
             textRect.topleft = (pos.x, pos.y)
             self.Surface.blit(text, textRect)

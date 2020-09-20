@@ -14,7 +14,7 @@ class GameLoader:
     def __init__(self, projectFile):
         self.Project = Project(projectFile)
         pygame.init()
-        surface = pygame.display.set_mode([500, 500])
+        surface = pygame.display.set_mode([self.Project.Width, self.Project.Height])
         self.Project.SceneManager.SetSurface(surface)
         self.Project.LoadProject()
         pygame.display.set_caption(self.Project.ProjectName)
@@ -36,7 +36,7 @@ class GameLoader:
 
     def Run(self):
         while self.Running:
-            self.Clock.tick(60)
+            self.Clock.tick(self.Project.LimitFPS)
             surface = self.Project.GetSurface()
             if surface:
                 surface.fill((51, 51, 51))

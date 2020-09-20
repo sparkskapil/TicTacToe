@@ -28,13 +28,19 @@ class Project:
         # Create Index file with the project Name
         with open(projectFile, 'w') as writer:
             json.dump(dict(), writer)
-            
+
         return projectFile
 
     def __init__(self, path):
         self.ProjectFile = None
         self.ProjectDir = None
+
+        # PROJECT SETTINGS ATTRIBUTES
         self.ProjectName = None
+        self.Width = 500
+        self.Height = 500
+        self.LimitFPS = 60
+
         self.VFS = None
         self.Setup(path)
 
@@ -69,6 +75,11 @@ class Project:
             index[sceneName] = sceneRelativePath
 
         index["__current__"] = self.SceneManager.CurrentSceneName
+        index["__settings__"] = dict()
+        index["__settings__"]["WindowWidth"] = self.Width
+        index["__settings__"]["WindowHeight"] = self.Height
+        index["__settings__"]["ProjectName"] = self.ProjectName
+        index["__settings__"]["LimitFPS"] = self.LimitFPS
 
         with open(self.ProjectFile, 'w') as writer:
             json.dump(index, writer)
@@ -77,30 +88,36 @@ class Project:
         if self.ProjectFile is None:
             return None
         index = None
-        
+
         with open(self.ProjectFile, 'r') as reader:
             index = json.load(reader)
         self.ProjectDir = os.path.split(self.ProjectFile)[0]
         self.ProjectDir = os.path.abspath(self.ProjectDir)
         self.VFS = VirtualFileSystem(self.ProjectDir)
         self.SceneManager.SetVFS(self.VFS)
-        
+
         if not index or len(index) == 0:
             return
 
-        for sceneName, relPath in index.items():
-            if sceneName == "__current__":
+        for key, relPath in index.items():
+            if key == "__current__":
                 self.SceneManager.SetScene(relPath)
+                continue
+            if key == "__settings__":
+                self.ProjectName = index["__settings__"]["ProjectName"]
+                self.Width = index["__settings__"]["WindowWidth"]
+                self.Height = index["__settings__"]["WindowHeight"]
+                self.LimitFPS = index["__settings__"]["LimitFPS"]
                 continue
             scene = Scene()
             scene.LoadScene(os.path.join(self.ProjectDir, relPath))
-            self.SceneManager.AddScene(sceneName, scene)
+            self.SceneManager.AddScene(key, scene)
 
     def GetSurface(self):
         if self.SceneManager:
             return self.SceneManager.Surface
         return None
-    
+
     def GetVFS(self):
         return self.VFS
 
@@ -113,6 +130,7 @@ class Project:
             newScene.LoadScene(scene.SceneLocation)
             self.SceneManager.AddScene(sceneName, newScene)
         self.SceneManager.SetScene(self.SceneManager.CurrentSceneName)
+
 
 if __name__ == "__main__":
     PROJECT_PATH = "C:\\Users\\Kapil\\Documents"

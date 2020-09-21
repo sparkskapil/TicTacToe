@@ -54,10 +54,10 @@ class Editor:
         self.SetupImGUI(self.WindowSize)
         self.BoundsRenderer = None
         self.Project = Project(projectPath)
-        self.updateViewPortSize(
-            int(self.WindowSize[0]), int(self.WindowSize[1]))
-
         self.Project.LoadProject()
+        
+        self.updateViewPortSize(
+            int(self.Project.Width), int(self.Project.Height))
 
         self.Running = True
         self.SelectedEntity = None
@@ -596,7 +596,6 @@ class Editor:
 def main():
     # "..\\PrototypeExample\\PrototypeExample.ptproj"
     editor = Editor("..\\PrototypeExample\\PrototypeExample.ptproj")
-    editor.updateViewPortSize(500, 500)
     editor.Run()
 
 

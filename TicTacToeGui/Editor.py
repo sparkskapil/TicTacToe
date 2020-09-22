@@ -526,8 +526,11 @@ class Editor:
             scene = self.Project.SceneManager.GetScene()
             if scene:
                 for entId in scene.Entities.keys():
+                    entityName = "Entity {}".format(entId)
+                    if scene.Entities[entId].HasComponent(TagComponent):
+                        entityName = scene.Entities[entId].GetComponent(TagComponent).name
                     _, currentlySelected = imgui.selectable(
-                        "Entity {}".format(entId), self.SelectedEntity == scene.Entities[entId])
+                        entityName, self.SelectedEntity == scene.Entities[entId])
 
                     if imgui.is_item_hovered() and imgui.is_mouse_double_clicked():
                         entityToRemove = scene.Entities[entId]

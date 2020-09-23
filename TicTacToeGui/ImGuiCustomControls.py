@@ -281,7 +281,11 @@ class OpenFileDialog:
             MessageBox.ShowMessageBox(
                 "FILE ERROR", "The path for file is invalid.")
         else:
-            OpenFileDialog.OnOpenEvent(filepath)
+            try:
+                OpenFileDialog.OnOpenEvent(filepath)
+            except Exception as e:
+                MessageBox.ShowMessageBox(
+                    "FILE ERROR", e.message)
             OpenFileDialog.__disposeDialog()
 
     @staticmethod

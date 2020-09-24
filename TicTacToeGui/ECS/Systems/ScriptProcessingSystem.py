@@ -76,6 +76,7 @@ class ScriptProcessingSystem:
     def __del__(self):
         self.Cache.clear()
         for mdir, mname in self.LoadedModules:
-            sys.path.remove(mdir)
+            if sys.path:
+                sys.path.remove(mdir)
             if mname in globals().keys():
                 globals().pop(mname)

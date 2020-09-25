@@ -11,9 +11,13 @@ class SpriteRenderSystem:
         if not Surface:
             self.Surface = scene.Surface
         self.Cache = dict()
+        self.CacheHitStack = dict()
+        self.CACHE_SIZE = 50
+        self.FRAME_COUNT = 0
+        
 
     def __computeWidthHeight(self, sprite):
-        imW, imH = self.Cache[sprite].get_size()
+        imW, imH = self.Cache[hash(sprite)].get_size()
         if sprite.mode == SpriteComponent.SpriteMode.Fit:
             sprite.width = self.Surface.get_width()
             sprite.height = self.Surface.get_height()
@@ -36,15 +40,15 @@ class SpriteRenderSystem:
             scaleSprite = True
             self.__computeWidthHeight(sprite)
             
-        imgWidth = self.Cache[sprite].get_width()
-        imgHeight = self.Cache[sprite].get_height()
+        imgWidth = self.Cache[hash(sprite)].get_width()
+        imgHeight = self.Cache[hash(sprite)].get_height()
         if not sprite.width == imgWidth or not sprite.height == imgHeight:
             scaleSprite = True
             
         if scaleSprite:
             self.__loadSprite(sprite)
-            self.Cache[sprite] = pygame.transform.scale(
-                self.Cache[sprite], (sprite.width, sprite.height))
+            self.Cache[hash(sprite)] = pygame.transform.scale(
+                self.Cache[hash(sprite)], (sprite.width, sprite.height))
 
     def __shouldSpriteRender(self, sprite, transform):
         # if sprite is offscreen it should not be rendered.
@@ -63,26 +67,43 @@ class SpriteRenderSystem:
         spritePath = os.path.join(self.VFS.Root, sprite.image)
         if not os.path.isfile(spritePath):
             return False
-        self.Cache[sprite] = pygame.image.load(spritePath)
+        self.Cache[hash(sprite)] = pygame.image.load(spritePath)
         return True
             
     def PreLoadSprites(self):
         sprites = self.Reg.GetComponentsByType(SpriteComponent)
         for sprite, _ in sprites:
             self.__loadSprite(sprite)
-
+    
+    def __shrinkCache(self):
+        maxVal = max(self.CacheHitStack.values())
+        toRemove = list()
+        for key, value in self.CacheHitStack.items():
+            if maxVal - value < 120:
+                toRemove.append(key)
+        for key in toRemove:
+            self.CacheHitStack.pop(key)
+            self.Cache.pop(key)
+        
     def RenderSpriteComponents(self):
+        self.FRAME_COUNT += 1
         sprites = self.Reg.GetComponentsByType(SpriteComponent)
         for sprite, ent in sprites:
             if sprite.image == "":
                 continue
-            if not sprite in self.Cache.keys():
+            key = hash(sprite)
+            if not key in self.Cache.keys():
                 if not self.__loadSprite(sprite):
                     continue
+            
+            self.CacheHitStack[key] = self.FRAME_COUNT
+            
+            if len(self.Cache) == self.CACHE_SIZE:
+                self.__shrinkCache()
             
             self.__transformSprite(sprite)
             transform = self.Entities[ent].GetComponent(TransformComponent)
 
             if self.__shouldSpriteRender(sprite, transform):
                 self.Surface.blit(
-                    self.Cache[sprite], (transform.position.x, transform.position.y))
+                    self.Cache[hash(sprite)], (transform.position.x, transform.position.y))

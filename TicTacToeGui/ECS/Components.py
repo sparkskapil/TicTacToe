@@ -180,6 +180,10 @@ class SpriteComponent:
 
     def __repr__(self):
         return '[SpriteComponent]\nImage: {}\nWidth: {}\nHeight:{}\n'.format(self.image, self.width, self.height)
+    
+    def __hash__(self):
+        return hash((self.image, self.width, self.height, self.mode))
+        
 
 
 class LabelComponent:

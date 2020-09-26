@@ -28,6 +28,7 @@ class SpriteRenderSystem:
             sprite.height = imH
 
     def __transformSprite(self, sprite):
+        key = hash(sprite)
         if sprite.width == sprite.height is None and sprite.mode == SpriteComponent.SpriteMode.RespectAspect:
             sprite.mode = SpriteComponent.SpriteMode.Original
 
@@ -37,15 +38,16 @@ class SpriteRenderSystem:
             scaleSprite = True
             self.__computeWidthHeight(sprite)
 
-        imgWidth = self.Cache[hash(sprite)].get_width()
-        imgHeight = self.Cache[hash(sprite)].get_height()
+        imgWidth = self.Cache[key].get_width()
+        imgHeight = self.Cache[key].get_height()
         if not sprite.width == imgWidth or not sprite.height == imgHeight:
             scaleSprite = True
 
         if scaleSprite:
             self.__loadSprite(sprite)
-            self.Cache[hash(sprite)] = pygame.transform.scale(
-                self.Cache[hash(sprite)], (sprite.width, sprite.height))
+            newKey = hash(sprite)
+            self.Cache[newKey] = pygame.transform.scale(
+                self.Cache[hash(newKey)], (sprite.width, sprite.height))
 
     def __shouldSpriteRender(self, sprite, transform):
         # if sprite is offscreen it should not be rendered.
@@ -81,10 +83,10 @@ class SpriteRenderSystem:
             key = hash(sprite)
             if not key in self.Cache.keys() and not self.__loadSprite(sprite):
                 continue
-
+            
             self.__transformSprite(sprite)
             transform = self.Entities[ent].GetComponent(TransformComponent)
 
             if self.__shouldSpriteRender(sprite, transform):
                 self.Surface.blit(
-                    self.Cache[hash(sprite)], (transform.position.x, transform.position.y))
+                    self.Cache[key], (transform.position.x, transform.position.y))

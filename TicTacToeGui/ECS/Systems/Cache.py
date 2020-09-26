@@ -25,7 +25,6 @@ class Cache(dict):
         return self.Counter
 
     def __shrinkCache(self):
-        print("Deleting obselete sprites")
         maxVal = max(self.CacheHit.values())
         obselete = list()
         for key, val in self.CacheHit.items():

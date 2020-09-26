@@ -1,6 +1,7 @@
 import os
 import pygame
 from ECS.Components import TransformComponent, SpriteComponent
+from ECS.Systems.Cache import Cache
 
 
 class SpriteRenderSystem:
@@ -10,11 +11,7 @@ class SpriteRenderSystem:
         self.VFS = scene.GetVFS()
         if not Surface:
             self.Surface = scene.Surface
-        self.Cache = dict()
-        self.CacheHitStack = dict()
-        self.CACHE_SIZE = 50
-        self.FRAME_COUNT = 0
-        
+        self.Cache = Cache()
 
     def __computeWidthHeight(self, sprite):
         imW, imH = self.Cache[hash(sprite)].get_size()
@@ -39,12 +36,12 @@ class SpriteRenderSystem:
         if not sprite.width or not sprite.height:
             scaleSprite = True
             self.__computeWidthHeight(sprite)
-            
+
         imgWidth = self.Cache[hash(sprite)].get_width()
         imgHeight = self.Cache[hash(sprite)].get_height()
         if not sprite.width == imgWidth or not sprite.height == imgHeight:
             scaleSprite = True
-            
+
         if scaleSprite:
             self.__loadSprite(sprite)
             self.Cache[hash(sprite)] = pygame.transform.scale(
@@ -62,45 +59,29 @@ class SpriteRenderSystem:
             isOffscreen = True
 
         return not isOffscreen
-    
+
     def __loadSprite(self, sprite):
         spritePath = os.path.join(self.VFS.Root, sprite.image)
         if not os.path.isfile(spritePath):
             return False
         self.Cache[hash(sprite)] = pygame.image.load(spritePath)
         return True
-            
+
     def PreLoadSprites(self):
         sprites = self.Reg.GetComponentsByType(SpriteComponent)
         for sprite, _ in sprites:
             self.__loadSprite(sprite)
-    
-    def __shrinkCache(self):
-        maxVal = max(self.CacheHitStack.values())
-        toRemove = list()
-        for key, value in self.CacheHitStack.items():
-            if maxVal - value < 120:
-                toRemove.append(key)
-        for key in toRemove:
-            self.CacheHitStack.pop(key)
-            self.Cache.pop(key)
-        
+
     def RenderSpriteComponents(self):
-        self.FRAME_COUNT += 1
+        self.Cache.UpdateCounter()
         sprites = self.Reg.GetComponentsByType(SpriteComponent)
         for sprite, ent in sprites:
             if sprite.image == "":
                 continue
             key = hash(sprite)
-            if not key in self.Cache.keys():
-                if not self.__loadSprite(sprite):
-                    continue
-            
-            self.CacheHitStack[key] = self.FRAME_COUNT
-            
-            if len(self.Cache) == self.CACHE_SIZE:
-                self.__shrinkCache()
-            
+            if not key in self.Cache.keys() and not self.__loadSprite(sprite):
+                continue
+
             self.__transformSprite(sprite)
             transform = self.Entities[ent].GetComponent(TransformComponent)
 

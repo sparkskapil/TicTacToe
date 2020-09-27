@@ -22,6 +22,8 @@ class Cache(dict):
         Then returns the updated counter value
         """
         self.Counter += value
+        if self.Counter % (self.RetentionSpan * 2) == 0:
+            self.__shrinkCache()
         return self.Counter
 
     def __shrinkCache(self):

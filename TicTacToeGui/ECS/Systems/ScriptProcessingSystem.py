@@ -1,6 +1,7 @@
 import os
 import sys
 from ECS.Components import ScriptComponent
+from ECS.Systems.Cache import Cache
 
 
 class ScriptProcessingSystem:
@@ -10,13 +11,13 @@ class ScriptProcessingSystem:
         self.Surface = Surface
         self.VFS = scene.GetVFS()
         self.Entities = scene.Entities
-        self.Cache = dict()  # Cache for all script instances
+        self.Cache = Cache()  # Cache for all script instances
         self.LoadedModules = list()
-        
+
     def __getModuleDir(self, module):
         modulePath = os.path.join(self.VFS.Root, module)
         return os.path.dirname(modulePath)
-                
+
     def importModule(self, modulePath):
         try:
             moduleDir, moduleFile = os.path.split(modulePath)
@@ -46,23 +47,26 @@ class ScriptProcessingSystem:
         if not os.path.isfile(modulePath):
             modulePath = os.path.join(self.VFS.Root, modulePath)
 
-        if not script in self.Cache.keys():
+        key = hash(script)
+
+        if not key in self.Cache.keys():
             module = self.importModule(modulePath)
             if not module:
                 return None
             scriptClass = getattr(module, script.Class)
             instance = scriptClass(self.scene, entity)
             instance.SceneManager = self.scene.GetSceneManager()
-            
+
             pwd = os.getcwd()
             os.chdir(self.__getModuleDir(script.Module))
             instance.Setup()
             os.chdir(pwd)
-            
-            self.Cache[script] = instance
+
+            self.Cache[key] = instance
         return True
 
     def UpdateGameObjects(self, timestep):
+        self.Cache.UpdateCounter()
         scripts = self.Reg.GetComponentsByType(ScriptComponent).copy()
         for script, ent in scripts:
             if script.Module == "" or script.Class == "":
@@ -70,7 +74,7 @@ class ScriptProcessingSystem:
             if self.__initializeScriptInstance(script, self.Entities[ent]):
                 pwd = os.getcwd()
                 os.chdir(self.__getModuleDir(script.Module))
-                self.Cache[script].Update(timestep)
+                self.Cache[hash(script)].Update(timestep)
                 os.chdir(pwd)
 
     def __del__(self):

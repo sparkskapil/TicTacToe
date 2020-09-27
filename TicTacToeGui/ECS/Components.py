@@ -216,6 +216,9 @@ class ScriptComponent:
 
     def __repr__(self):
         return "[ScriptComponent]\nModule: {} \nClass: {}".format(self.Module, self.Class)
+    
+    def __hash__(self):
+        return hash((self.Module, self.Class))
 
 
 if __name__ == "__main__":

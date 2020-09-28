@@ -180,10 +180,9 @@ class SpriteComponent:
 
     def __repr__(self):
         return '[SpriteComponent]\nImage: {}\nWidth: {}\nHeight:{}\n'.format(self.image, self.width, self.height)
-    
+
     def __hash__(self):
         return hash((self.image, self.width, self.height, self.mode))
-        
 
 
 class LabelComponent:
@@ -196,6 +195,9 @@ class LabelComponent:
 
     def __repr__(self):
         return "[LabelComponent]\nText: {}\nFont: {}\nSize: {}\nColor: {}\nBackground:{}".format(self.text, self.font, self.size, self.color, self.background)
+
+    def __hash__(self):
+        return hash((self.text, self.font, self.size, self.color, self.background))
 
 
 class ButtonComponent:
@@ -216,7 +218,7 @@ class ScriptComponent:
 
     def __repr__(self):
         return "[ScriptComponent]\nModule: {} \nClass: {}".format(self.Module, self.Class)
-    
+
     def __hash__(self):
         return hash((self.Module, self.Class))
 

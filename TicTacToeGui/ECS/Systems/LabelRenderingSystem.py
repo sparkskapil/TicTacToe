@@ -1,6 +1,7 @@
 import os
+import pygame 
 from ECS.Components import LabelComponent, TransformComponent
-import pygame
+from ECS.Systems.Cache import Cache
 
 
 class LabelRenderingSystem:
@@ -10,17 +11,18 @@ class LabelRenderingSystem:
         self.VFS = scene.GetVFS()
         if not Surface:
             self.Surface = scene.Surface
-        self.Cache = dict()
-        self.SurfaceCache = dict()
+        self.Cache = Cache()
+        self.SurfaceCache = Cache()
 
     def __preloadFontForLabel(self, label):
+        key = hash(label)
         if not label.font or not self.Surface:
             return False
         fontPath = os.path.join(self.VFS.Root, label.font)
         if not os.path.isfile(fontPath):
             return False
-        if not label in self.Cache.keys() or not self.Cache[label].get_ascent() == label.size:
-            self.Cache[label] = pygame.font.Font(fontPath, label.size)
+        if not key in self.Cache.keys() or not self.Cache[key].get_ascent() == label.size:
+            self.Cache[key] = pygame.font.Font(fontPath, label.size)
         return True
 
     def PreloadFonts(self):
@@ -29,6 +31,9 @@ class LabelRenderingSystem:
             self.__preloadFontForLabel(label)
 
     def RenderLable(self):
+        self.Cache.UpdateCounter()
+        self.SurfaceCache.UpdateCounter()
+        
         labels = self.Reg.GetComponentsByType(LabelComponent)
         for label, entt in labels:
             if label.text == "" or label.font == "":
@@ -42,9 +47,9 @@ class LabelRenderingSystem:
             if not label.background is None and label.background[-1] == 255:
                 bgColor = None
 
-            lblHash = hash((label.text, label.color, label.font, label.background))
+            lblHash = hash(label)
             if lblHash not in self.SurfaceCache.keys():
-                self.SurfaceCache[lblHash] = self.Cache[label].render(
+                self.SurfaceCache[lblHash] = self.Cache[lblHash].render(
                     label.text, True, label.color, bgColor)
 
             text = self.SurfaceCache[lblHash]

@@ -51,11 +51,8 @@ class InputProcessingSystem:
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and collidePoint:
                 self.Cache[button]['click']()
 
-            if event.type == pygame.MOUSEMOTION and collidePoint:
-                self.Cache[button]['hover'][1] = True
-
-            if event.type == pygame.MOUSEMOTION and not collidePoint:
-                self.Cache[button]['hover'][1] = False
+            if event.type == pygame.MOUSEMOTION:
+                self.Cache[button]['hover'][1] = collidePoint
 
             state = self.Cache[button]['hover'][1]
             self.Cache[button]['hover'][0](state)

@@ -23,18 +23,26 @@ class Cache(dict):
         """
         self.Counter += value
         if self.Counter % (self.RetentionSpan * 2) == 0:
-            self.__shrinkCache()
+            self.__shrink_cache()
         return self.Counter
 
-    def __shrinkCache(self):
-        maxVal = max(self.CacheHit.values())
+    def __shrink_cache(self):
+        """
+        Shrink cache by removing obselete items.
+        """
+        if len(self.CacheHit) == 0:
+            return False
+
+        max_val = max(self.CacheHit.values())
         obselete = list()
         for key, val in self.CacheHit.items():
-            if maxVal - val > self.RetentionSpan:
+            if max_val - val > self.RetentionSpan:
                 obselete.append(key)
         for key in obselete:
             dict.pop(self, key)
             self.CacheHit.pop(key)
+
+        return False
 
     def __getitem__(self, key):
         self.CacheHit[key] = self.Counter
@@ -42,6 +50,6 @@ class Cache(dict):
 
     def __setitem__(self, key, value):
         if len(self) >= self.CacheSize:
-            self.__shrinkCache()
+            self.__shrink_cache()
         self.CacheHit[key] = self.Counter
         dict.__setitem__(self, key, value)

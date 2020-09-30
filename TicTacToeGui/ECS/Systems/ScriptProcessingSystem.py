@@ -47,7 +47,8 @@ class ScriptProcessingSystem:
         if not os.path.isfile(modulePath):
             modulePath = os.path.join(self.VFS.Root, modulePath)
 
-        key = hash(script)
+        
+        key = hash((script, entity.GetId()))
 
         if not key in self.Cache.keys():
             module = self.importModule(modulePath)
@@ -74,7 +75,10 @@ class ScriptProcessingSystem:
             if self.__initializeScriptInstance(script, self.Entities[ent]):
                 pwd = os.getcwd()
                 os.chdir(self.__getModuleDir(script.Module))
-                self.Cache[hash(script)].Update(timestep)
+                
+                key = hash((script, ent))
+
+                self.Cache[key].Update(timestep)
                 os.chdir(pwd)
 
     def __del__(self):

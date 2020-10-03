@@ -597,8 +597,8 @@ class Editor:
 
 
 def main():
-    # "..\\PrototypeExample\\PrototypeExample.ptproj"
-    editor = Editor("..\\PrototypeExample\\PrototypeExample.ptproj")
+    project = "C:\\Users\\Kapil\\Desktop\\TicTacToe\\PrototypeExample\\PrototypeExample.ptproj"
+    editor = Editor(project)
     editor.Run()
 
 

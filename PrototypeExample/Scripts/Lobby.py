@@ -3,26 +3,20 @@ from ECS.Components import ButtonComponent, TagComponent, SpriteComponent, Label
 import Global
 
 
-class MenuButton(Scriptable):
+class NetworkMode(Scriptable):
     def __init__(self, scene, entity):
         Scriptable.__init__(self, scene, entity)
 
     def Setup(self):
-        button = self.Entity.GetComponent(ButtonComponent)
-        if button:
-            self.AddOnClickListener(button, Event(self.onButtonClick, button))
-            self.AddOnHoverListener(button, StateEvent(
-                self.onButtonHover, self.Entity))
+        pass
 
     def Update(self, timestep):
         pass
 
     def onButtonClick(self, button):
-        Global.Mode = self.Entity.GetComponent(TagComponent).name
-        if Global.Mode == "Mode_Network":
-            self.GetSceneManager().SetScene("NetworkSetup")
-        else:
-            self.GetSceneManager().SetScene("MainScene")
+        Global.IsHost = self.Entity.GetComponent(
+            TagComponent).name == "BtnHost"
+        self.GetSceneManager().SetScene("Lobby")
 
     def onButtonHover(self, hovered, entity):
         label = entity.GetComponent(LabelComponent)

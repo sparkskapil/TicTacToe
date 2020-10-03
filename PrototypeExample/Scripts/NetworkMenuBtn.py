@@ -3,7 +3,7 @@ from ECS.Components import ButtonComponent, TagComponent, SpriteComponent, Label
 import Global
 
 
-class MenuButton(Scriptable):
+class NetworkMode(Scriptable):
     def __init__(self, scene, entity):
         Scriptable.__init__(self, scene, entity)
 

@@ -1,1 +1,1 @@
-{"MainScene": "Scene\\MainScene.pts", "Menu": "Scene\\Menu.pts", "Results": "Scene\\Results.pts", "NetworkSetup": "Scene\\NetworkSetup.pts", "__current__": "Menu", "__settings__": {"WindowWidth": 500, "WindowHeight": 500, "ProjectName": "Tic-Tac-Toe", "LimitFPS": 60}}
+{"Menu": "Scene\\Menu.pts", "MainScene": "Scene\\MainScene.pts", "Results": "Scene\\Results.pts", "NetworkSetup": "Scene\\NetworkSetup.pts", "Lobby": "Scene\\Lobby.pts", "__current__": "Menu", "__settings__": {"WindowWidth": 500, "WindowHeight": 500, "ProjectName": "Tic-Tac-Toe", "LimitFPS": 60}}

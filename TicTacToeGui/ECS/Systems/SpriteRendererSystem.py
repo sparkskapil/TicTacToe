@@ -45,9 +45,10 @@ class SpriteRenderSystem:
 
         if scaleSprite:
             self.__loadSprite(sprite)
-            newKey = hash(sprite)
-            self.Cache[newKey] = pygame.transform.scale(
-                self.Cache[hash(newKey)], (sprite.width, sprite.height))
+            key = hash(sprite)
+            self.Cache[key] = pygame.transform.scale(
+                self.Cache[hash(key)], (sprite.width, sprite.height))
+        return key
 
     def __shouldSpriteRender(self, sprite, transform):
         # if sprite is offscreen it should not be rendered.
@@ -84,7 +85,7 @@ class SpriteRenderSystem:
             if not key in self.Cache.keys() and not self.__loadSprite(sprite):
                 continue
             
-            self.__transformSprite(sprite)
+            key = self.__transformSprite(sprite)
             transform = self.Entities[ent].GetComponent(TransformComponent)
 
             if self.__shouldSpriteRender(sprite, transform):

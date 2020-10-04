@@ -4,6 +4,7 @@ from enum import Enum
 from threading import Thread
 import socket
 import json
+import time
 
 
 def ClearConsole():
@@ -128,8 +129,13 @@ class AIPlayer:
     def __init__(self, symbol, opponent):
         self.symbol = symbol
         self.opponent = opponent
+        self.delay = 0.0
         with open('aistates.json') as reader:
-            self.Scores = json.load(reader)
+            temp = json.load(reader)
+            self.Scores = dict()
+            for state,score in temp.items():
+                self.Scores[int(state)] = score
+            
 
     def Score(self, grid, maximize):
         if grid.CheckWin():
@@ -177,15 +183,36 @@ class AIPlayer:
         return max(scores, key=scores.get)
 
     def GetCell(self, grid, game=None):
+        
         if not game:
             return -1
         if game.Finished:
             game.Busy = False
             return -1
+        
+        # Get time before starting computation
+        start = time.time()
+        
         game.Busy = True
         gameState = deepcopy(grid)
         cell = self.MiniMax(gameState)
+        
+        # Get time after starting computation
+        end = time.time()
+        
+        # Calculate time elapsed during computation
+        duration = end - start
+        
+        # Store maximum computation duration in delay atrribute
+        if duration > self.delay:
+            self.delay = duration
+            
+        # To make this function take same time to compute each move. 
+        time.sleep(self.delay - duration) 
+        
+        # Take the turn when the wait is complete. 
         game.TakeTurn(cell)
+        
         return int(cell)
 
 

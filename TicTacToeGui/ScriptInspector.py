@@ -44,8 +44,7 @@ class ModuleInfo:
             os.chdir(pwd)
             return module
         except:
-            print("Oops!", sys.exc_info()[0], "occurred.")
-            raise ImportError
+            raise ImportError("Oops!", sys.exc_info()[0], "occurred.")
 
     def GetScriptableClassesInModule(self):
         md5Hash = ModuleInfo.ComputeHash(self.Path)
@@ -55,8 +54,11 @@ class ModuleInfo:
 
         self.Classes.clear()
         self.ClassTypes.clear()
-
-        ModuleInfo.ImportModule(self.Location, self.Name)
+        try:
+            ModuleInfo.ImportModule(self.Location, self.Name)
+        except ImportError:
+            return self.Classes
+        
         Classes = inspect.getmembers(sys.modules[self.Name], inspect.isclass)
         for classMember in Classes:
             className = classMember[0]

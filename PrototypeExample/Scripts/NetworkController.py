@@ -16,7 +16,8 @@ class MenuButton(Scriptable):
         self.IpCount = 0
         if Global.IsHost == False:
             entt = self.GetEntitiesByTag("LobbyLabel_1")[0]
-            entt.GetComponent(LabelComponent).text = "Searching hosts"
+            label = entt.GetComponent(LabelComponent)
+            label.text = "Searching hosts"
             self.FindHosts()
 
     def Update(self, timestep):

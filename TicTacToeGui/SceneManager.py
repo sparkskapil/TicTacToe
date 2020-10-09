@@ -8,7 +8,7 @@ class SceneManager:
 
     def HasScene(self):
         return not self.CurrentScene is None
-    
+
     def AddScene(self, name, scene):
         self.Scenes[name] = scene
         scene.SetSceneManager(self)
@@ -38,7 +38,7 @@ class SceneManager:
         for _, scene in self.Scenes.items():
             scene.SetVFS(vfs)
         self.VFS = vfs
-        
+
     def Render(self):
         self.CurrentScene.OnRender()
 

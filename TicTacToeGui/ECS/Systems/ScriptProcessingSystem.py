@@ -1,5 +1,6 @@
 import os
 import sys
+import importlib
 from ECS.Components import ScriptComponent
 from ECS.Systems.Cache import Cache
 
@@ -31,6 +32,7 @@ class ScriptProcessingSystem:
                 os.chdir(moduleDir)
             sys.path.append(moduleDir)
             module = __import__(moduleName)
+            importlib.reload(module)
             module.__file__ = modulePath
             globals()[moduleName] = module
 
@@ -40,16 +42,29 @@ class ScriptProcessingSystem:
         except:
             raise ImportError
 
-    def __initializeScriptInstance(self, script, entity):
-        if script.Module == "" or script.Class == "":
-            return
+    def __computeHash(self, filepath):
+        reader = open(filepath, "rb")
+        content = reader.read()
+        reader.close()
+        return hash(content)
+
+    def __getModulePath(self, script):
         modulePath = script.Module
         if not os.path.isfile(modulePath):
             modulePath = os.path.join(self.VFS.Root, modulePath)
+        return modulePath
 
-        
-        key = hash((script, entity.GetId()))
+    def __getHashKey(self, script, entity):
+        modulePath = self.__getModulePath(script)
+        filehash = self.__computeHash(modulePath)
+        return hash((script, entity.GetId(), filehash))
 
+    def __initializeScriptInstance(self, script, entity):
+        self.Cache.UpdateCounter()
+        if script.Module == "" or script.Class == "":
+            return
+        modulePath = self.__getModulePath(script)
+        key = self.__getHashKey(script, entity)
         if not key in self.Cache.keys():
             module = self.importModule(modulePath)
             if not module:
@@ -64,10 +79,10 @@ class ScriptProcessingSystem:
             os.chdir(pwd)
 
             self.Cache[key] = instance
+
         return True
 
     def UpdateGameObjects(self, timestep):
-        self.Cache.UpdateCounter()
         scripts = self.Reg.GetComponentsByType(ScriptComponent).copy()
         for script, ent in scripts:
             if script.Module == "" or script.Class == "":
@@ -75,16 +90,19 @@ class ScriptProcessingSystem:
             if self.__initializeScriptInstance(script, self.Entities[ent]):
                 pwd = os.getcwd()
                 os.chdir(self.__getModuleDir(script.Module))
-                
-                key = hash((script, ent))
+
+                key = self.__getHashKey(script, self.Entities[ent])
 
                 self.Cache[key].Update(timestep)
                 os.chdir(pwd)
 
+    def __removeModule(self, mdir, mname):
+        if sys.path and mdir in sys.path:
+            sys.path.remove(mdir)
+        if mname in globals().keys():
+            del globals()[mname]
+
     def __del__(self):
         self.Cache.clear()
         for mdir, mname in self.LoadedModules:
-            if sys.path:
-                sys.path.remove(mdir)
-            if mname in globals().keys():
-                globals().pop(mname)
+            self.__removeModule(mdir, mname)

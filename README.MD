@@ -1,4 +1,4 @@
-#Prototype Engine
+# Prototype Engine
 
 It is a complete python based 2D game engine with its own ecs. It makes use of pygame library for 2D rendering and pyimgui for editor interface.
 

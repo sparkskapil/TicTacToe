@@ -52,6 +52,7 @@ class Scene:
         for component in entity.GetComponents():
             clonedEntity.AddComponent(deepcopy(component))
         self.NotifySceneChanged()
+        return clonedEntity
 
     def OnSetup(self, surface):
         self.Setup()

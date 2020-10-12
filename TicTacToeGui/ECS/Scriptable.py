@@ -15,16 +15,17 @@ class Scriptable:
         self.Reg = scene.Reg
         self.Surface = scene.Surface
         self.Entity = entity
+
     def Setup(self):
         """
         Method to be implemented by scripts.
         """
-        
+
     def Update(self, timestep):
         """
         Method to be implemented by scripts.
         """
-        
+
     def GetComponent(self, Typename):
         return self.Entity.GetComponent(Typename)
 
@@ -53,6 +54,12 @@ class Scriptable:
 
     def GetSceneManager(self):
         return self.Scene.GetSceneManager()
+
+    def CloneEntity(self, entity):
+        return self.Scene.CloneEntity(entity)
+    
+    def CreateEntity(self):
+        return self.Scene.CreateEntity()
 
     # Will contains instance of
     # 1. Physics Manager

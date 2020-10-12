@@ -186,7 +186,7 @@ class SpriteComponent:
 
 
 class LabelComponent:
-    def __init__(self, text="", font="", fontSize=32, foreground=(255, 255, 255), background=None):
+    def __init__(self, text="", font="", fontSize=32, foreground=(0, 0, 0), background=None):
         self.text = text
         self.font = font
         self.size = fontSize

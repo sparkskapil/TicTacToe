@@ -24,7 +24,7 @@ class MenuButton(Scriptable):
 
     def Update(self, timestep):
         if self.IsBusy == False and len(self.Hosts):
-            position = Vector(150, 265, 0)
+            position = Vector(130, 265, 0)
             for i, host in enumerate(self.Hosts):
                 position.y += i*50
                 ent = self.CreateEntity()
@@ -41,7 +41,8 @@ class MenuButton(Scriptable):
             label.size = 24
             self.IsBusy = None
 
-    def __checkIpOnThread(self, sock, address, maxCount):
+    def __checkIpOnThread(self, address, maxCount):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         connected = False
         if sock.connect_ex(address) == 0:
             connected = True
@@ -52,6 +53,7 @@ class MenuButton(Scriptable):
         if self.IpCount == maxCount:
             self.IsBusy = False
         self.Lock.release()
+        sock.close()
 
     def FindHosts(self):
         # getting the hostname by socket.gethostname() method
@@ -61,14 +63,12 @@ class MenuButton(Scriptable):
         # scan lan hosts
         ipArr = ip_address.split('.')
         gamePort = 8080
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         for i in range(1, 255):
             ipArr[-1] = str(i)
             ip = '.'.join(ipArr)
             thread = threading.Thread(target=self.__checkIpOnThread,
-                                      args=(sock, (ip, gamePort), 254))
+                                      args=((ip, gamePort), 254))
             thread.start()
-        sock.close()
 
     def onButtonClick(self, button):
         pass

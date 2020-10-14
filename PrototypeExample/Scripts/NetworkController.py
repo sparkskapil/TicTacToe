@@ -29,7 +29,12 @@ class MenuButton(Scriptable):
                 position.y += i*50
                 ent = self.CreateEntity()
                 ent.GetComponent(TransformComponent).position = position
-                label = ent.AddComponent(LabelComponent(host, 'Fonts/FreeSansBold.ttf'))
+                label = ent.AddComponent(LabelComponent(
+                    host, 'Fonts/FreeSansBold.ttf'))
+                button = ent.AddComponent(ButtonComponent(230, 40))
+                self.AddOnClickListener(button, Event(self.onButtonClick, ent))
+                self.AddOnHoverListener(
+                    button, StateEvent(self.onButtonHover, ent))
             self.IsBusy = None
         if self.IsBusy == False and len(self.Hosts) == 0:
             position = Vector(125, 265, 0)
@@ -70,8 +75,12 @@ class MenuButton(Scriptable):
                                       args=((ip, gamePort), 254))
             thread.start()
 
-    def onButtonClick(self, button):
-        pass
+    def onButtonClick(self, entity):
+        print(entity.GetComponent(LabelComponent).text)
 
     def onButtonHover(self, hovered, entity):
-        pass
+        label = entity.GetComponent(LabelComponent)
+        if hovered:
+            label.color = (37, 122, 253)
+        else:
+            label.color = (0, 0, 0)

@@ -1,5 +1,6 @@
 import socket
 import threading
+from copy import deepcopy
 from ECS.Scriptable import Scriptable, Event, StateEvent
 from ECS.Components import ButtonComponent, TagComponent, LabelComponent
 from ECS.Components import Vector, TransformComponent
@@ -25,10 +26,11 @@ class MenuButton(Scriptable):
     def Update(self, timestep):
         if self.IsBusy == False and len(self.Hosts):
             position = Vector(130, 265, 0)
-            for i, host in enumerate(self.Hosts):
-                position.y += i*50
+            for host in self.Hosts:
+                position.y += 40
                 ent = self.CreateEntity()
-                ent.GetComponent(TransformComponent).position = position
+                ent.GetComponent(
+                    TransformComponent).position = deepcopy(position)
                 label = ent.AddComponent(LabelComponent(
                     host, 'Fonts/FreeSansBold.ttf'))
                 button = ent.AddComponent(ButtonComponent(230, 40))
@@ -72,7 +74,7 @@ class MenuButton(Scriptable):
             ipArr[-1] = str(i)
             ip = '.'.join(ipArr)
             thread = threading.Thread(target=self.__checkIpOnThread,
-                                      args=((ip, gamePort), 254))
+                                       args=((ip, gamePort), 508))
             thread.start()
 
     def onButtonClick(self, entity):

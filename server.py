@@ -2,34 +2,30 @@ import socket
 from threading import Thread
 import uuid
 
-HOST = 'localhost'
-PORT = 5000
+HOST = socket.gethostbyname(socket.gethostname())
+PORT = 8081
 
 clients = []
 
 
+def processMessage(conn, addr, data):
+    print(str(addr) + ':' + data.decode('utf-8'))
+
+
 def ServeClient(conn, addr):
     global clients
-    Index = len(clients)
+    len(clients)
     clients.append((conn, addr))
 
     with conn:
         print('Connected by', addr)
-        if len(clients) == 1:
-            conn.sendall(b'O')
-        else:
-            conn.sendall(b'X')
         while True:
             try:
                 data = conn.recv(1024)
+                processMessage(conn, addr, data)
                 if len(data) == 0:
                     print('{} connnection closed.'.format(addr))
                     break
-                for index, client in enumerate(clients):
-                    if index == Index:
-                        continue
-                    client[0].sendall(data)
-
             except Exception as e:
                 print(e)
                 break
@@ -40,7 +36,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     s.bind((HOST, PORT))
     s.listen()
     print('Server listening at {} Port {}'.format(HOST, PORT))
-    while len(clients) < 2:
+    while True:
         conn, addr = s.accept()
         thread = Thread(target=ServeClient, args=(conn, addr))
         thread.start()

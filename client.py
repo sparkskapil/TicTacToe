@@ -1,17 +1,23 @@
 import socket
 from threading import Thread
 import os
+import pickle
+from NetworkMessage import MessageChannel
 
-HOST = '127.0.0.1'  # The server's hostname or IP address
-PORT = 5000        # The port used by the server
+HOST = '192.168.1.208'  # The server's hostname or IP address
+PORT = 55050        # The port used by the server
 CLOSED = False
 
-# Mimic C++ cin 
+
+# Mimic C++ cin
+
+
 def getInput():
     string = ''
     while string == '':
         string = input()
     return string
+
 
 def handleServer(s):
     global CLOSED
@@ -25,12 +31,14 @@ def handleServer(s):
         print(msg)
     CLOSED = True
 
+
 def handleClient(s):
+    channel = MessageChannel(s)
     global CLOSED
     data = None
     while not data == 'exit' or CLOSED:
         data = getInput()
-        s.sendall(data.encode('utf-8'))
+        channel.sendMessage(data)
     CLOSED = True
 
 

@@ -22,11 +22,11 @@ def getInput():
 def handleServer(s):
     global CLOSED
     msg = None
+    channel = MessageChannel(s)
     while not msg == 'exit' or CLOSED:
-        msg = s.recv(1024)
+        msg = channel.receiveMessage()
         if len(msg) == 0:
             break
-        msg = msg.decode('utf-8')
         print()
         print(msg)
     CLOSED = True

@@ -12,17 +12,19 @@ clients = []
 
 
 def processMessage(conn, addr, data):
-    print(str(addr) + ':' + data)
+    for c, _, channel in clients:
+        if not c == conn:
+            channel.sendMessage(data)
 
 
 def ServeClient(conn, addr):
     global clients
-    len(clients)
-    clients.append((conn, addr))
+    channel = MessageChannel(conn, addr)
+    info = (conn, addr, channel)
+    clients.append(info)
 
     with conn:
         print('Connected by', addr)
-        channel = MessageChannel(conn)
         while True:
             try:
                 data = channel.receiveMessage()
@@ -36,7 +38,7 @@ def ServeClient(conn, addr):
             except KeyboardInterrupt:
                 break
 
-        clients.remove((conn, addr))
+        clients.remove(info)
 
 
 def signal_handler(signal, frame):

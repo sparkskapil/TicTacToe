@@ -3,8 +3,9 @@ HEADERLENGTH = 20
 
 
 class MessageChannel:
-    def __init__(self, conn):
+    def __init__(self, conn, addr=None):
         self.Connection = conn
+        self.Address = addr
 
     def sendMessage(self, message):
         length = len(message)

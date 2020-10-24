@@ -1,6 +1,6 @@
 import sys
 import pygame
-from ECS.Components import ButtonComponent, TransformComponent
+from ..Components import ButtonComponent, TransformComponent
 
 
 class InputProcessingSystem:

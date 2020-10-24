@@ -1,4 +1,4 @@
-from ECS.Components import TagComponent
+from .Components import TagComponent
 
 
 def Event(func: callable, *args, **kwargs):
@@ -57,7 +57,7 @@ class Scriptable:
 
     def CloneEntity(self, entity):
         return self.Scene.CloneEntity(entity)
-    
+
     def CreateEntity(self):
         return self.Scene.CreateEntity()
 

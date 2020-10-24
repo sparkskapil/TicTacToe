@@ -1,7 +1,7 @@
 import os
 import pygame 
-from ECS.Components import LabelComponent, TransformComponent
-from ECS.Systems.Cache import Cache
+from ..Components import LabelComponent, TransformComponent
+from .Cache import Cache
 
 
 class LabelRenderingSystem:

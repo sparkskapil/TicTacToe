@@ -3,14 +3,14 @@ from copy import deepcopy
 import pickle
 import json
 
-from ECS.Registry import Registry
-from ECS.Entity import Entity
-from ECS.Systems.SpriteRendererSystem import SpriteRenderSystem
-from ECS.Systems.InputProcessingSystem import InputProcessingSystem
-from ECS.Systems.ScriptProcessingSystem import ScriptProcessingSystem
-from ECS.Systems.LabelRenderingSystem import LabelRenderingSystem
+from .Registry import Registry
+from .Entity import Entity
+from .Systems.SpriteRendererSystem import SpriteRenderSystem
+from .Systems.InputProcessingSystem import InputProcessingSystem
+from .Systems.ScriptProcessingSystem import ScriptProcessingSystem
+from .Systems.LabelRenderingSystem import LabelRenderingSystem
 
-from ECS.Components import TransformComponent, TagComponent
+from .Components import TransformComponent, TagComponent
 
 
 class Scene:
@@ -101,7 +101,7 @@ class Scene:
         directory = os.path.split(filepath)[0]
         if not os.path.exists(directory):
             os.makedirs(directory)
-        
+
         if not filepath.endswith('.pts'):
             filepath = filepath + '.pts'
 
@@ -148,12 +148,12 @@ class Scene:
 
     def SetSceneManager(self, manager):
         self.SceneManager = manager
-        
+
     def SetVFS(self, vfs):
         self.VFS = vfs
-                
+
     def GetVFS(self):
         return self.VFS
-        
+
     def GetSceneManager(self):
         return self.SceneManager

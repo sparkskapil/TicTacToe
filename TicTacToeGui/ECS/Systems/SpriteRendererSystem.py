@@ -1,7 +1,7 @@
 import os
 import pygame
-from ECS.Components import TransformComponent, SpriteComponent
-from ECS.Systems.Cache import Cache
+from ..Components import TransformComponent, SpriteComponent
+from .Cache import Cache
 
 
 class SpriteRenderSystem:

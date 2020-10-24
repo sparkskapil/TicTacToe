@@ -1,7 +1,7 @@
 """
 This is a module containing BoundsComputingSystem.
 """
-from ECS.Components import TransformComponent
+from ..Components import TransformComponent
 import pygame
 
 

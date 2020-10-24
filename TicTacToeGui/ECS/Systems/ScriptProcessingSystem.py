@@ -1,8 +1,8 @@
 import os
 import sys
 import importlib
-from ECS.Components import ScriptComponent
-from ECS.Systems.Cache import Cache
+from ..Components import ScriptComponent
+from .Cache import Cache
 
 
 class ScriptProcessingSystem:

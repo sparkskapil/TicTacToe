@@ -2,6 +2,7 @@ import os
 from copy import deepcopy
 import pickle
 import json
+import traceback
 
 from .Registry import Registry
 from .Entity import Entity
@@ -66,6 +67,7 @@ class Scene:
             self.SetSurface(surface)
         except Exception as e:
             print(e)
+            traceback.print_exc()
 
     def OnRender(self):
         try:
@@ -73,6 +75,7 @@ class Scene:
             self.LabelRenderer.RenderLable()
         except Exception as e:
             print(e)
+            traceback.print_exc()
 
     def OnUpdate(self, timestep):
         try:
@@ -80,12 +83,14 @@ class Scene:
             self.Update(timestep)
         except Exception as e:
             print(e)
+            traceback.print_exc()
 
     def OnEvent(self, event):
         try:
             self.InputHandler.CheckAndProcessButtonClicks(event)
         except Exception as e:
             print(e)
+            traceback.print_exc()
 
     def Setup(self):
         '''

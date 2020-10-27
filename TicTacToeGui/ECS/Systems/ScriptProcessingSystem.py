@@ -1,6 +1,7 @@
 import os
 import sys
 import importlib
+import traceback
 from ..Components import ScriptComponent
 from .Cache import Cache
 
@@ -40,6 +41,7 @@ class ScriptProcessingSystem:
             os.chdir(pwd)
             return module
         except:
+            traceback.print_exc()
             raise ImportError
 
     def __computeHash(self, filepath):

@@ -1,8 +1,8 @@
 """
 This is a module containing BoundsComputingSystem.
 """
-from ..Components import TransformComponent
 import pygame
+from ..Components import TransformComponent
 
 
 class BoundsComputingSystem:

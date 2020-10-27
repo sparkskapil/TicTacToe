@@ -2,6 +2,7 @@ from hashlib import md5
 import os
 import sys
 import inspect
+import traceback
 from types import FunctionType
 
 
@@ -44,6 +45,7 @@ class ModuleInfo:
             os.chdir(pwd)
             return module
         except:
+            traceback.print_exc()
             raise ImportError("Oops!", sys.exc_info()[0], "occurred.")
 
     def GetScriptableClassesInModule(self):
@@ -57,6 +59,7 @@ class ModuleInfo:
         try:
             ModuleInfo.ImportModule(self.Location, self.Name)
         except ImportError:
+            traceback.print_exc()
             return self.Classes
         
         Classes = inspect.getmembers(sys.modules[self.Name], inspect.isclass)

@@ -55,7 +55,7 @@ class Editor:
         self.BoundsRenderer = None
         self.Project = Project(projectPath)
         self.Project.LoadProject()
-        
+
         self.updateViewPortSize(
             int(self.Project.Width), int(self.Project.Height))
 
@@ -222,7 +222,8 @@ class Editor:
         if not module == "" and not module in self.Scripts.keys():
             modulePath = module
             if not FileSystem.IsValidFile(modulePath):
-                projectRoot = FileSystem.GetAbsolutePath(self.Project.GetVFS().Root)
+                projectRoot = FileSystem.GetAbsolutePath(
+                    self.Project.GetVFS().Root)
                 modulePath = FileSystem.JoinPath(projectRoot, modulePath)
             self.Scripts[module] = ModuleInfo(modulePath)
 
@@ -339,7 +340,9 @@ class Editor:
         self.Project.CreateNewScene(sceneName, file)
 
     def __onOpenFile(self, file):
-        print(file)
+        ext = FileSystem.GetFileExtension(file)
+        if ext.lower() == '.ptproj':
+            self.__onOpenProjectFile(file)
 
     def OnEvent(self):
         for event in pygame.event.get():
@@ -528,7 +531,8 @@ class Editor:
                 for entId in scene.Entities.keys():
                     entityName = "Entity {}".format(entId)
                     if scene.Entities[entId].HasComponent(TagComponent):
-                        entityName = scene.Entities[entId].GetComponent(TagComponent).name
+                        entityName = scene.Entities[entId].GetComponent(
+                            TagComponent).name
                     _, currentlySelected = imgui.selectable(
                         entityName, self.SelectedEntity == scene.Entities[entId])
 

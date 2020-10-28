@@ -4,6 +4,7 @@ This module contains custom reusable imgui controls.
 import os
 import platform
 import imgui
+import traceback
 
 
 class FileSystem:
@@ -284,6 +285,8 @@ class OpenFileDialog:
             try:
                 OpenFileDialog.OnOpenEvent(filepath)
             except Exception as e:
+                print(e)
+                traceback.print_exc()
                 MessageBox.ShowMessageBox(
                     "FILE ERROR", e.message)
             OpenFileDialog.__disposeDialog()

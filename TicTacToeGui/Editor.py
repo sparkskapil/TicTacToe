@@ -65,6 +65,9 @@ class Editor:
         self.ScenePosition = (0, 0)
         self.GameMode = False
         self.File = None
+        
+        self.openFileDialogState = False
+        self.saveFileDialogState = False
 
         self.SelectionRenderer = None
         self.Scripts = dict()
@@ -344,12 +347,33 @@ class Editor:
         if ext.lower() == '.ptproj':
             self.__onOpenProjectFile(file)
 
+    def __processShortcut(self, event):
+        keys = pygame.key.get_pressed()
+        isControlPressed = keys[pygame.K_LCTRL] or keys[pygame.K_RCTRL]
+        isShiftPressed = keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]
+        if isControlPressed:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_o:
+                    self.openFileDialogState = True
+                if event.key == pygame.K_s:
+                    self.__saveCommand()
+
+        if isShiftPressed:
+            pass
+
+        if isControlPressed and isShiftPressed:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_s:
+                    # Handle Save As
+                    pass
+
     def OnEvent(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.Running = False
             if event.type == pygame.KEYDOWN and pygame.K_ESCAPE == event.key:
                 self.Running = False
+            self.__processShortcut(event)
             self.ImGUIImpl.process_event(event)
 
             if self.GameMode:
@@ -376,7 +400,14 @@ class Editor:
     def __onOpenProjectFile(self, projectFile):
         self.Project.ProjectFile = projectFile
         self.Project.LoadProject()
-
+    
+    def __saveCommand(self):
+        path = self.Project.GetCurrentScene().SceneLocation
+        if path:
+            self.Project.GetCurrentScene().SaveScene(path)
+        else:
+            self.saveFileDialogState = True
+            
     def __imguiDrawProjectDialog(self):
         opened, _ = imgui.begin_popup_modal("Project Dialog")
         if opened:
@@ -401,8 +432,6 @@ class Editor:
         self.OnApplicationResize()
         imgui.new_frame()
         menubarHeight = 0
-        openFileDialogState = False
-        saveFileDialogState = False
         createNewScene = False
 
         if imgui.begin_main_menu_bar():
@@ -411,23 +440,19 @@ class Editor:
                 clickedOpen, _ = imgui.menu_item(
                     "Open", 'Ctrl+O', False)
                 if clickedOpen:
-                    openFileDialogState = True
+                    self.openFileDialogState = True
 
                 clickedSave, _ = imgui.menu_item(
                     "Save", 'Ctrl+S', False, self.Project.SceneManager.HasScene()
                 )
                 if clickedSave:
-                    path = self.Project.GetCurrentScene().SceneLocation
-                    if path:
-                        self.Project.GetCurrentScene().SaveScene(path)
-                    else:
-                        saveFileDialogState = True
+                    self.__saveCommand()
 
                 clickedSaveAs, _ = imgui.menu_item(
                     "Save As", 'Ctrl+Shift+S', False, self.Project.SceneManager.HasScene()
                 )
                 if clickedSaveAs:
-                    saveFileDialogState = True
+                    self.saveFileDialogState = True
 
                 clickedSaveProject, _ = imgui.menu_item(
                     "Save Project", None, False, self.Project.SceneManager.HasScene()
@@ -463,7 +488,7 @@ class Editor:
                     "Create Scene", None, False, True)
                 if clickedCreateScene:
                     createNewScene = True
-                    saveFileDialogState = True
+                    self.saveFileDialogState = True
 
                 imgui.separator()
 
@@ -483,12 +508,12 @@ class Editor:
             _, menubarHeight = imgui.get_item_rect_size()
             imgui.end_main_menu_bar()
 
-        if openFileDialogState:
+        if self.openFileDialogState:
             OpenFileDialog.ShowDialog(self.__onOpenFile)
-        openFileDialogState = False
+        self.openFileDialogState = False
         OpenFileDialog.DrawDialog()
 
-        if saveFileDialogState:
+        if self.saveFileDialogState:
             sceneName = self.Project.SceneManager.CurrentSceneName
             if createNewScene:
                 sceneName = "New Scene"
@@ -501,7 +526,7 @@ class Editor:
             else:
                 SaveFileDialog.ShowDialog(self.__onSaveFile, None, defaultFile)
 
-        saveFileDialogState = False
+        self.saveFileDialogState = False
         SaveFileDialog.DrawDialog()
         self.__imguiDrawProjectDialog()
         # Create texture from Pygame Surface

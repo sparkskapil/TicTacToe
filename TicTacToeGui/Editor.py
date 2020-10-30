@@ -364,8 +364,8 @@ class Editor:
         if isControlPressed and isShiftPressed:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_s:
-                    # Handle Save As
-                    pass
+                    self.saveFileDialogState = True
+                    
 
     def OnEvent(self):
         for event in pygame.event.get():

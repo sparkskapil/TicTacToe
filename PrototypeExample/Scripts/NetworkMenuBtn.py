@@ -18,6 +18,9 @@ class NetworkMode(Scriptable):
         pass
 
     def onButtonClick(self, button):
+        if self.Entity.GetComponent(TagComponent).name == "BtnBack":
+            self.GetSceneManager().SetScene("Menu")
+            return
         Global.IsHost= self.Entity.GetComponent(TagComponent).name == "BtnHost"
         self.GetSceneManager().SetScene("Lobby")
 

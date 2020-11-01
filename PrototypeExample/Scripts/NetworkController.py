@@ -22,6 +22,15 @@ class MenuButton(Scriptable):
             label.text = "Searching hosts"
             self.IsBusy = True
             self.FindHosts()
+        self.BackButton = self.GetEntitiesByTag("BtnBack")[0]
+        btnBack = self.BackButton.GetComponent(ButtonComponent)
+        self.AddOnClickListener(btnBack, Event(
+            self.onBackPressed, self.BackButton))
+        self.AddOnHoverListener(btnBack, StateEvent(
+            self.onButtonHover, self.BackButton))
+
+    def onBackPressed(self, entity):
+        self.GetSceneManager().SetScene("NetworkSetup")
 
     def Update(self, timestep):
         if self.IsBusy == False and len(self.Hosts):
@@ -74,7 +83,7 @@ class MenuButton(Scriptable):
             ipArr[-1] = str(i)
             ip = '.'.join(ipArr)
             thread = threading.Thread(target=self.__checkIpOnThread,
-                                       args=((ip, gamePort), 508))
+                                      args=((ip, gamePort), 508))
             thread.start()
 
     def onButtonClick(self, entity):

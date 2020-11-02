@@ -52,7 +52,7 @@ class Editor:
 
         self.Clock = pygame.time.Clock()
         self.SetupImGUI(self.WindowSize)
-        self.BoundsRenderer = None
+        self.SelectionRenderer = None
         self.Project = Project(projectPath)
         self.Project.LoadProject()
 
@@ -65,7 +65,7 @@ class Editor:
         self.ScenePosition = (0, 0)
         self.GameMode = False
         self.File = None
-        
+
         self.openFileDialogState = False
         self.saveFileDialogState = False
 
@@ -365,7 +365,18 @@ class Editor:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_s:
                     self.saveFileDialogState = True
-                    
+
+    def __processMouseEvent(self, event):
+        if event.pos[0] < 0 or event.pos[0] > self.Project.Width:
+            return
+        if event.pos[1] < 0 or event.pos[1] > self.Project.Height:
+            return
+        if self.GameMode:
+            return
+        if self.SelectionRenderer:
+            entity = self.SelectionRenderer.GetEntity(event.pos)
+            if entity:
+                self.SelectedEntity = entity
 
     def OnEvent(self):
         for event in pygame.event.get():
@@ -373,6 +384,9 @@ class Editor:
                 self.Running = False
             if event.type == pygame.KEYDOWN and pygame.K_ESCAPE == event.key:
                 self.Running = False
+            if event.type == pygame.MOUSEBUTTONUP:
+                self.__processMouseEvent(
+                    self.__modifyEventRelativeToScene(event))
             self.__processShortcut(event)
             self.ImGUIImpl.process_event(event)
 
@@ -382,7 +396,7 @@ class Editor:
 
     def OnRender(self):
         if self.Project.SceneManager.HasScene():
-            if self.BoundsRenderer is None:
+            if self.SelectionRenderer is None:
                 self.SelectionRenderer = BoundsComputingSystem(
                     self.Project.SceneManager.CurrentScene, self.Project.GetSurface())
             if self.GameMode:
@@ -400,14 +414,14 @@ class Editor:
     def __onOpenProjectFile(self, projectFile):
         self.Project.ProjectFile = projectFile
         self.Project.LoadProject()
-    
+
     def __saveCommand(self):
         path = self.Project.GetCurrentScene().SceneLocation
         if path:
             self.Project.GetCurrentScene().SaveScene(path)
         else:
             self.saveFileDialogState = True
-            
+
     def __imguiDrawProjectDialog(self):
         opened, _ = imgui.begin_popup_modal("Project Dialog")
         if opened:

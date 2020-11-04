@@ -516,6 +516,7 @@ class Editor:
                         selectedScene = sceneName
                 if not selectedScene == currScene:
                     self.Project.SceneManager.SetScene(selectedScene)
+                    self.SelectionRenderer = None
                     self.SelectedEntity = None
 
                 imgui.end_menu()

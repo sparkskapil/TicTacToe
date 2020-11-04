@@ -1,5 +1,5 @@
 import os
-import pygame 
+import pygame
 from ..Components import LabelComponent, TransformComponent
 from .Cache import Cache
 
@@ -23,6 +23,7 @@ class LabelRenderingSystem:
             return False
         if not key in self.Cache.keys() or not self.Cache[key].get_ascent() == label.size:
             self.Cache[key] = pygame.font.Font(fontPath, label.size)
+            label.width, label.height = self.Cache[key].size(label.text)
         return True
 
     def PreloadFonts(self):
@@ -33,7 +34,7 @@ class LabelRenderingSystem:
     def RenderLable(self):
         self.Cache.UpdateCounter()
         self.SurfaceCache.UpdateCounter()
-        
+
         labels = self.Reg.GetComponentsByType(LabelComponent)
         for label, entt in labels:
             if label.text == "" or label.font == "":

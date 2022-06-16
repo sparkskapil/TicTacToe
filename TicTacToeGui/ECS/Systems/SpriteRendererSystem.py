@@ -47,7 +47,7 @@ class SpriteRenderSystem:
             self.__loadSprite(sprite)
             key = hash(sprite)
             self.Cache[key] = pygame.transform.scale(
-                self.Cache[hash(key)], (sprite.width, sprite.height))
+                self.Cache[key], (sprite.width, sprite.height))
         return key
 
     def __shouldSpriteRender(self, sprite, transform):
